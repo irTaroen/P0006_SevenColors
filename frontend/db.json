@@ -1,0 +1,147 @@
+{
+  "clients": [
+    {
+      "id": "1",
+      "name": "Acme Corp",
+      "email": "contact@acme.com",
+      "phone": "+1 555-0101",
+      "address": "123 Main St, Springfield"
+    },
+    {
+      "id": "2",
+      "name": "Globex Inc",
+      "email": "info@globex.com",
+      "phone": "+1 555-0102",
+      "address": "456 Oak Ave, Shelbyville"
+    },
+    {
+      "id": "3",
+      "name": "Initech LLC",
+      "email": "hello@initech.com",
+      "phone": "+1 555-0103",
+      "address": "789 Pine Rd, Capital City"
+    }
+  ],
+  "items": [
+    {
+      "id": "1",
+      "name": "Steel Rod",
+      "unit": "kg",
+      "unitPrice": 4.5
+    },
+    {
+      "id": "2",
+      "name": "Copper Wire",
+      "unit": "m",
+      "unitPrice": 2.75
+    },
+    {
+      "id": "3",
+      "name": "Plastic Sheet",
+      "unit": "m²",
+      "unitPrice": 8.0
+    },
+    {
+      "id": "4",
+      "name": "Rubber Seal",
+      "unit": "pcs",
+      "unitPrice": 0.9
+    },
+    {
+      "id": "5",
+      "name": "Aluminium Profile",
+      "unit": "m",
+      "unitPrice": 6.2
+    }
+  ],
+  "products": [
+    {
+      "id": "1",
+      "name": "Basic Frame",
+      "components": [
+        { "itemId": "1", "amount": 5 },
+        { "itemId": "5", "amount": 2 }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Wiring Kit",
+      "components": [
+        { "itemId": "2", "amount": 10 },
+        { "itemId": "4", "amount": 4 }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Enclosure Panel",
+      "components": [
+        { "itemId": "3", "amount": 1.5 },
+        { "itemId": "4", "amount": 8 },
+        { "itemId": "1", "amount": 2 }
+      ]
+    }
+  ],
+  "inventory": [
+    {
+      "id": "1",
+      "itemId": "1",
+      "stock": 320,
+      "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "2",
+      "itemId": "2",
+      "stock": 850,
+      "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "3",
+      "itemId": "3",
+      "stock": 45,
+      "warehouse": "Secondary Warehouse"
+    },
+    {
+      "id": "4",
+      "itemId": "4",
+      "stock": 1200,
+      "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "5",
+      "itemId": "5",
+      "stock": 60,
+      "warehouse": "Secondary Warehouse"
+    }
+  ],
+  "orders": [
+    {
+      "id": "1",
+      "clientId": "1",
+      "date": "2026-05-10",
+      "status": "delivered",
+      "products": [
+        { "productId": "1", "quantity": 3 },
+        { "productId": "2", "quantity": 1 }
+      ]
+    },
+    {
+      "id": "2",
+      "clientId": "2",
+      "date": "2026-05-18",
+      "status": "in_progress",
+      "products": [
+        { "productId": "3", "quantity": 2 }
+      ]
+    },
+    {
+      "id": "3",
+      "clientId": "3",
+      "date": "2026-05-27",
+      "status": "pending",
+      "products": [
+        { "productId": "1", "quantity": 1 },
+        { "productId": "3", "quantity": 4 }
+      ]
+    }
+  ]
+}
