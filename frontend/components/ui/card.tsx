@@ -10,6 +10,27 @@ function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   )
 }
 
+/* Kairos neumorphic card — use instead of Card for all dashboard panels */
+function NeuCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      data-slot="neu-card"
+      className={cn("neu-card rounded-2xl", className)}
+      {...props}
+    />
+  )
+}
+
+function NeuCardInset({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      data-slot="neu-card-inset"
+      className={cn("neu-card-inset rounded-2xl", className)}
+      {...props}
+    />
+  )
+}
+
 function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
@@ -70,4 +91,4 @@ function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement
   )
 }
 
-export { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter }
+export { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter, NeuCard, NeuCardInset }

@@ -17,4 +17,20 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   )
 }
 
-export { Input }
+/* Kairos neumorphic input — inset at rest, cloud-blue ring on focus, pill shape.
+   Use for all filter inputs and search fields in the dashboard. */
+function NeuInput({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
+    <InputPrimitive
+      type={type}
+      data-slot="neu-input"
+      className={cn(
+        "neu-input w-full min-w-0 px-4 py-2 text-xs disabled:pointer-events-none disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Input, NeuInput }

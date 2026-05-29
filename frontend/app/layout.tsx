@@ -1,4 +1,4 @@
-import { Geist_Mono, Montserrat } from "next/font/google"
+import { Geist_Mono, Poppins } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -9,7 +9,11 @@ import { AppSidebar } from "@/components/navbar/app-sidebar"
 import { SiteHeader } from "@/components/navbar/site-header"
 import { AppProviders } from "@/app/providers"
 
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" })
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -25,9 +29,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", montserrat.variable)}
+      className={cn("antialiased", fontMono.variable, "font-sans", poppins.variable)}
     >
       <body>
+        {/* Starfield — fixed behind all content, shown in dark mode via CSS */}
+        <div className="starfield" aria-hidden="true" />
         <ThemeProvider>
           <AppProviders>
             <TooltipProvider>
