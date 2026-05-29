@@ -3,11 +3,6 @@ import { Geist_Mono, Poppins } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { AppSidebar } from "@/components/navbar/app-sidebar"
-import { SiteHeader } from "@/components/navbar/site-header"
-import { AppProviders } from "@/app/providers"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -32,21 +27,9 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", poppins.variable)}
     >
       <body>
-        {/* Starfield — fixed behind all content, shown in dark mode via CSS */}
+        {/* Starfield — position: fixed, shown in dark mode via .dark .starfield CSS */}
         <div className="starfield" aria-hidden="true" />
-        <ThemeProvider>
-          <AppProviders>
-            <TooltipProvider>
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                  <SiteHeader />
-                  <main className="flex flex-1 flex-col gap-4 p-4">{children}</main>
-                </SidebarInset>
-              </SidebarProvider>
-            </TooltipProvider>
-          </AppProviders>
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )

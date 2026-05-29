@@ -1,22 +1,21 @@
 /**
- * Individual KPI check card for the Kairos dashboard.
+ * Individual KPI card for the Kairos dashboard.
  *
  * Uses neumorphic raised/lifted/inset shadows (from globals.css CSS vars) directly
  * instead of shadcn Card, so the interactive press-state transitions feel physical.
- * Each card has a colored icon well whose hue maps to the check type:
- * amber=incomplete, red=unapproved, purple=payroll, grey=capacity, yellow=double.
+ * Each card has a colored icon well whose hue maps to the metric type:
+ * amber=orders, purple=producing, green=inventory, red=spill.
  */
 "use client"
 
 import { useState } from "react"
-import { Check } from "lucide-react"
+import { Check, ShoppingCart, Factory, Warehouse, Trash2, type LucideIcon } from "lucide-react"
 
-const ICON_STYLES: Record<string, { fg: string; bg: string; icon: string }> = {
-  checkCompleet:        { fg: "var(--k-amber-fg)",  bg: "var(--k-amber-bg)",  icon: "📋" },
-  checkGeaccordeerd:    { fg: "var(--k-red-fg)",    bg: "var(--k-red-bg)",    icon: "✓"  },
-  checkPayroll:         { fg: "var(--k-purple-fg)", bg: "var(--k-purple-bg)", icon: "€"  },
-  checkWithinCapacity:  { fg: "var(--k-grey-fg)",   bg: "var(--k-grey-bg)",   icon: "▲"  },
-  checkNietDubbel:      { fg: "var(--k-yellow-fg)", bg: "var(--k-yellow-bg)", icon: "⊞"  },
+const ICON_STYLES: Record<string, { fg: string; bg: string; icon: LucideIcon }> = {
+  totalOrders:     { fg: "var(--k-amber-fg)",  bg: "var(--k-amber-bg)",  icon: ShoppingCart },
+  totalProducing:  { fg: "var(--k-purple-fg)", bg: "var(--k-purple-bg)", icon: Factory      },
+  totalInventory:  { fg: "var(--k-green-fg)",  bg: "var(--k-green-bg)",  icon: Warehouse    },
+  totalSpill:      { fg: "var(--k-red-fg)",    bg: "var(--k-red-bg)",    icon: Trash2       },
 }
 
 interface KpiCardProps {
@@ -33,7 +32,7 @@ export function KpiCard({ title, value, checkKey, zeroText, onClick, isActive }:
   const [pressed, setPressed] = useState(false)
   const isPressed = pressed || isActive
 
-  const style = ICON_STYLES[checkKey] ?? { fg: "var(--k-text-secondary)", bg: "var(--k-divider)", icon: "•" }
+  const style = ICON_STYLES[checkKey] ?? { fg: "var(--k-text-secondary)", bg: "var(--k-divider)", icon: ShoppingCart }
 
   const shadow = isPressed
     ? "var(--k-shadow-inset)"
@@ -95,10 +94,10 @@ export function KpiCard({ title, value, checkKey, zeroText, onClick, isActive }:
         width: 42, height: 42, borderRadius: 12,
         background: style.bg, boxShadow: "var(--k-shadow-inset-sm)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 16, color: style.fg, flexShrink: 0, fontWeight: 600,
+        flexShrink: 0,
         transform: hov && !isPressed ? "scale(1.05)" : "scale(1)",
         transition: "transform 0.2s ease",
-      }}>{style.icon}</div>
+      }}><style.icon size={18} style={{ color: style.fg }} /></div>
 
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{

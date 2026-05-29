@@ -51,10 +51,10 @@
 /* ── Kairos neumorphic design tokens ─────────────────────────────────────── */
 :root {
     /* Surface */
-    --k-bg: #f5f0eb;
+    --k-bg: #f9f7f4;
 
     /* Shadow sources — theme-aware, shadows auto-adapt via these two vars */
-    --k-shade:     #c9c2b8;
+    --k-shade:     #d6cfc7;
     --k-highlight: #ffffff;
 
     /* Neumorphic shadow primitives */
@@ -142,11 +142,11 @@
 
 /* ── Shadcn theme tokens — aligned to Kairos warm palette ────────────────── */
 :root {
-    --background: #f5f0eb;
+    --background: #f9f7f4;
     --foreground: #31344b;
-    --card: #f5f0eb;
+    --card: #f9f7f4;
     --card-foreground: #31344b;
-    --popover: #f5f0eb;
+    --popover: #f9f7f4;
     --popover-foreground: #31344b;
     --primary: #5fa8d3;
     --primary-foreground: #f5f0eb;
@@ -166,7 +166,7 @@
     --chart-4: #4a8fa8;
     --chart-5: #31344b;
     --radius: 1rem;
-    --sidebar: #f5f0eb;
+    --sidebar: #f9f7f4;
     --sidebar-foreground: #31344b;
     --sidebar-primary: #5fa8d3;
     --sidebar-primary-foreground: #f5f0eb;
@@ -276,6 +276,58 @@
 
 .dark .starfield {
     display: block;
+}
+
+/* ── Sidebar Kairos overrides ────────────────────────────────────────────── */
+
+/* Remove hard border; soft shadow creates the edge separation instead */
+[data-slot="sidebar-container"][data-side="left"] {
+    border-right: none !important;
+}
+[data-slot="sidebar-container"][data-side="right"] {
+    border-left: none !important;
+}
+[data-sidebar="sidebar"] {
+    box-shadow: var(--k-shadow-raised-sm);
+}
+
+/* Nav menu buttons — three-state neumorphic */
+[data-slot="sidebar-menu-button"] {
+    color: var(--k-text-secondary);
+    border-radius: var(--radius-md) !important;
+    transition: box-shadow 0.2s ease, color 0.2s ease, transform 0.15s ease !important;
+}
+[data-slot="sidebar-menu-button"]:hover:not([data-active="true"]) {
+    background: var(--k-bg) !important;
+    box-shadow: var(--k-shadow-raised-sm) !important;
+    color: var(--k-cloud-deep) !important;
+    transform: translateY(-1px);
+}
+[data-slot="sidebar-menu-button"][data-active="true"] {
+    background: var(--k-bg) !important;
+    box-shadow: var(--k-shadow-inset-sm) !important;
+    color: var(--k-cloud-deep) !important;
+    font-weight: 600;
+}
+[data-slot="sidebar-menu-button"]:active {
+    box-shadow: var(--k-shadow-inset-sm) !important;
+    transform: translateY(0) !important;
+    color: var(--k-cloud-deep) !important;
+}
+
+/* Sidebar collapse trigger */
+[data-sidebar="trigger"] {
+    color: var(--k-text-secondary) !important;
+    border-radius: 50% !important;
+    transition: box-shadow 0.2s ease, color 0.2s ease !important;
+}
+[data-sidebar="trigger"]:hover {
+    background: var(--k-bg) !important;
+    box-shadow: var(--k-shadow-raised-sm) !important;
+    color: var(--k-cloud-deep) !important;
+}
+[data-sidebar="trigger"]:active {
+    box-shadow: var(--k-shadow-inset-sm) !important;
 }
 
 /* ── Neumorphic utility classes ──────────────────────────────────────────── */

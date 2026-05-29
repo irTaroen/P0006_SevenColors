@@ -14,11 +14,10 @@ type Props = {
 }
 
 const KPI_CARDS = [
-  { checkKey: "checkCompleet",       title: "Pending orders",             zeroText: "No pending orders",               dataKey: "incomplete"   as const },
-  { checkKey: "checkGeaccordeerd",   title: "Orders in progress",         zeroText: "No orders in progress",           dataKey: "unapproved"   as const },
-  { checkKey: "checkPayroll",        title: "Products without components", zeroText: "All products have components",    dataKey: "payroll"      as const },
-  { checkKey: "checkWithinCapacity", title: "Out-of-stock items",         zeroText: "All items are in stock",          dataKey: "overcapacity" as const },
-  { checkKey: "checkNietDubbel",     title: "Unused items",               zeroText: "All items are used in a product", dataKey: "double"       as const },
+  { checkKey: "totalOrders",    title: "Total orders",      zeroText: "No orders",            dataKey: "totalOrders"    as const },
+  { checkKey: "totalProducing", title: "In production",     zeroText: "Nothing in production", dataKey: "totalProducing" as const },
+  { checkKey: "totalInventory", title: "In stock",          zeroText: "Nothing in stock",      dataKey: "totalInventory" as const },
+  { checkKey: "totalSpill",     title: "Unused items",      zeroText: "No unused items",       dataKey: "totalSpill"     as const },
 ]
 
 export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientCount = 0 }: Props) {
@@ -49,7 +48,7 @@ export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientC
 
   return (
     <section className="pb-6">
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {KPI_CARDS.map((card) => (
           <KpiCard
             key={card.checkKey}

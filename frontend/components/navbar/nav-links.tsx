@@ -36,7 +36,6 @@ export function NavLinks({
                   tooltip={item.title}
                   isActive={isActive}
                   render={<Link href={item.url} />}
-                  className={isActive ? "bg-blue-500! text-white! [&>svg]:text-white!" : ""}
                 >
                   {item.icon}
                   <span>{item.title}</span>

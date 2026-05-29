@@ -19,48 +19,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton className="data-[slot=sidebar-menu-button]:p-1.5!" render={<a href="#" />}>
-                {collapsed ? (
-                  <svg
-                    width="20" height="20" viewBox="0 0 24 24"
-                    fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    stroke="url(#paint-bucket-grad)"
-                    className="size-5! shrink-0"
-                  >
-                    <defs>
-                      <linearGradient id="paint-bucket-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%"   stopColor="#ef4444" />
-                        <stop offset="20%"  stopColor="#f97316" />
-                        <stop offset="40%"  stopColor="#eab308" />
-                        <stop offset="60%"  stopColor="#22c55e" />
-                        <stop offset="80%"  stopColor="#3b82f6" />
-                        <stop offset="100%" stopColor="#a855f7" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M11 7 6 2" />
-                    <path d="M18.992 12H2.041" />
-                    <path d="M21.145 18.38A3.34 3.34 0 0 1 20 16.5a3.3 3.3 0 0 1-1.145 1.88c-.575.46-.855 1.02-.855 1.595A2 2 0 0 0 20 22a2 2 0 0 0 2-2.025c0-.58-.285-1.13-.855-1.595" />
-                    <path d="m8.5 4.5 2.148-2.148a1.205 1.205 0 0 1 1.704 0l7.296 7.296a1.205 1.205 0 0 1 0 1.704l-7.592 7.592a3.615 3.615 0 0 1-5.112 0l-3.888-3.888a3.615 3.615 0 0 1 0-5.112L5.67 7.33" />
-                  </svg>
-                ) : (
-                  <PaintBucketIcon className="size-5!" />
-                )}
-                <span className="text-base font-semibold">
-                  7{" "}
-                  <span className="font-bold">
-                    <span className="text-red-500">C</span>
-                    <span className="text-orange-500">O</span>
-                    <span className="text-yellow-500">L</span>
-                    <span className="text-green-500">O</span>
-                    <span className="text-blue-500">R</span>
-                    <span className="text-purple-500">S</span>
-                  </span>
+          {/* Logo plate */}
+          <div
+            className="neu-button-icon"
+            style={{
+              width: "auto", height: 36, borderRadius: 10, flexShrink: 0,
+              padding: collapsed ? "0 9px" : "0 12px 0 9px", gap: 10,
+            }}
+          >
+            <PaintBucketIcon style={{ width: 18, height: 18, color: "var(--k-cloud-deep)" }} />
+            {!collapsed && (
+              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--k-text-primary)", letterSpacing: "-0.3px" }}>
+                7{" "}
+                <span style={{ fontWeight: 700 }}>
+                  <span style={{ color: "#ef4444" }}>C</span>
+                  <span style={{ color: "#f97316" }}>O</span>
+                  <span style={{ color: "#eab308" }}>L</span>
+                  <span style={{ color: "#22c55e" }}>O</span>
+                  <span style={{ color: "#3b82f6" }}>R</span>
+                  <span style={{ color: "#a855f7" }}>S</span>
                 </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+              </span>
+            )}
+          </div>
           {/* Expanded: controls sit next to logo */}
           <div className="ml-auto flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:hidden">
             <ThemeToggle />

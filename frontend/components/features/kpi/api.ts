@@ -3,11 +3,10 @@ import { API_BASE } from "@/lib/api"
 export type KpiCount = { total: number }
 
 export type KpiData = {
-  incomplete: KpiCount    // pending orders
-  unapproved: KpiCount    // in-progress orders
-  payroll: KpiCount       // products with no components
-  overcapacity: KpiCount  // inventory entries with zero stock
-  double: KpiCount        // items not used in any product
+  totalOrders:    KpiCount  // all orders in scope
+  totalProducing: KpiCount  // orders currently in progress
+  totalInventory: KpiCount  // inventory entries with stock > 0
+  totalSpill:     KpiCount  // items not used in any product
 }
 
 type Order     = { id: string; clientId: string; status: string; products: unknown[] }
@@ -32,10 +31,9 @@ export async function fetchKpiData(clientId?: string | null): Promise<KpiData> {
   )
 
   return {
-    incomplete:   { total: scopedOrders.filter((o) => o.status === "pending").length },
-    unapproved:   { total: scopedOrders.filter((o) => o.status === "in_progress").length },
-    payroll:      { total: products.filter((p) => !p.components?.length).length },
-    overcapacity: { total: inventory.filter((e) => e.stock === 0).length },
-    double:       { total: items.filter((i) => !usedItemIds.has(i.id)).length },
+    totalOrders:    { total: scopedOrders.length },
+    totalProducing: { total: scopedOrders.filter((o) => o.status === "in_progress").length },
+    totalInventory: { total: inventory.filter((e) => e.stock > 0).length },
+    totalSpill:     { total: items.filter((i) => !usedItemIds.has(i.id)).length },
   }
 }
