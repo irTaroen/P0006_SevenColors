@@ -9,6 +9,7 @@ import { FormField } from "@/components/data-table/form-field"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { SelectField } from "@/components/data-table/select-field"
 import { Input } from "@/components/ui/input"
+import { NumberInput } from "@/components/ui/number-input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
 
 type InventoryEntry = {
@@ -163,13 +164,11 @@ export default function InventoryPage() {
           </SelectField>
         </FormField>
         <FormField label="Stock" htmlFor="inventory-stock">
-          <Input
+          <NumberInput
             id="inventory-stock"
-            type="number"
-            min={0}
             value={form.stock}
-            onChange={(e) => setForm((f) => ({ ...f, stock: Number(e.target.value) }))}
-            className="tabular-nums"
+            onChange={(stock) => setForm((f) => ({ ...f, stock }))}
+            integerOnly
             required
           />
         </FormField>

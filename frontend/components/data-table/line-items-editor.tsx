@@ -2,9 +2,9 @@
 
 import { PlusIcon, Trash2Icon } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { SelectField } from "@/components/data-table/select-field"
+import { Button } from "@/components/ui/button"
+import { NumberInput } from "@/components/ui/number-input"
 
 type Option = { id: string; label: string }
 
@@ -57,14 +57,10 @@ export function LineItemsEditor<T>({
                   </option>
                 ))}
               </SelectField>
-              <Input
-                type="number"
-                min={0}
-                step="any"
+              <NumberInput
                 value={getQuantity(item)}
-                onChange={(e) => setQuantity(index, Number(e.target.value) || 0)}
+                onChange={(quantity) => setQuantity(index, quantity)}
                 aria-label={quantityLabel}
-                className="tabular-nums"
               />
               <Button
                 type="button"

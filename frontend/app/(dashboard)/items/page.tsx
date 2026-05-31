@@ -8,6 +8,7 @@ import { DataTable } from "@/components/data-table/data-table"
 import { FormField } from "@/components/data-table/form-field"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { Input } from "@/components/ui/input"
+import { NumberInput } from "@/components/ui/number-input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
 import { formatPrice } from "@/lib/pricing"
 
@@ -172,26 +173,18 @@ export default function ItemsPage() {
           />
         </FormField>
         <FormField label="Buy price" htmlFor="item-buy-price">
-          <Input
+          <NumberInput
             id="item-buy-price"
-            type="number"
-            min={0}
-            step="any"
             value={form.buyPrice}
-            onChange={(e) => setForm((f) => ({ ...f, buyPrice: Number(e.target.value) }))}
-            className="tabular-nums"
+            onChange={(buyPrice) => setForm((f) => ({ ...f, buyPrice }))}
             required
           />
         </FormField>
         <FormField label="Sell price" htmlFor="item-sell-price">
-          <Input
+          <NumberInput
             id="item-sell-price"
-            type="number"
-            min={0}
-            step="any"
             value={form.sellPrice}
-            onChange={(e) => setForm((f) => ({ ...f, sellPrice: Number(e.target.value) }))}
-            className="tabular-nums"
+            onChange={(sellPrice) => setForm((f) => ({ ...f, sellPrice }))}
             required
           />
         </FormField>

@@ -11,6 +11,7 @@ import { LineItemsEditor } from "@/components/data-table/line-items-editor"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { SelectField } from "@/components/data-table/select-field"
 import { Input } from "@/components/ui/input"
+import { NumberInput } from "@/components/ui/number-input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
 import { computeProductTotalCost, formatPrice } from "@/lib/pricing"
 
@@ -299,14 +300,10 @@ export default function ProductsPage() {
           />
         </FormField>
         <FormField label="Sell price" htmlFor="product-sell-price">
-          <Input
+          <NumberInput
             id="product-sell-price"
-            type="number"
-            min={0}
-            step="any"
             value={form.sellPrice}
-            onChange={(e) => setForm((f) => ({ ...f, sellPrice: Number(e.target.value) }))}
-            className="tabular-nums"
+            onChange={(sellPrice) => setForm((f) => ({ ...f, sellPrice }))}
             required
           />
         </FormField>

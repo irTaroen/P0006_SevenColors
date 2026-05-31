@@ -88,9 +88,18 @@
       "clientId": null,
       "sellPrice": 2000,
       "components": [
-        { "itemId": "1", "amount": 22 },
-        { "itemId": "6", "amount": 18 },
-        { "itemId": "7", "amount": 160 }
+        {
+          "itemId": "1",
+          "amount": 22
+        },
+        {
+          "itemId": "6",
+          "amount": 18
+        },
+        {
+          "itemId": "7",
+          "amount": 160
+        }
       ]
     },
     {
@@ -100,9 +109,18 @@
       "clientId": null,
       "sellPrice": 2000,
       "components": [
-        { "itemId": "2", "amount": 20 },
-        { "itemId": "6", "amount": 18 },
-        { "itemId": "7", "amount": 160 }
+        {
+          "itemId": "2",
+          "amount": 20
+        },
+        {
+          "itemId": "6",
+          "amount": 18
+        },
+        {
+          "itemId": "7",
+          "amount": 160
+        }
       ]
     },
     {
@@ -112,9 +130,18 @@
       "clientId": null,
       "sellPrice": 1950,
       "components": [
-        { "itemId": "3", "amount": 18 },
-        { "itemId": "6", "amount": 18 },
-        { "itemId": "7", "amount": 160 }
+        {
+          "itemId": "3",
+          "amount": 18
+        },
+        {
+          "itemId": "6",
+          "amount": 18
+        },
+        {
+          "itemId": "7",
+          "amount": 160
+        }
       ]
     },
     {
@@ -124,9 +151,18 @@
       "clientId": null,
       "sellPrice": 2100,
       "components": [
-        { "itemId": "4", "amount": 45 },
-        { "itemId": "6", "amount": 15 },
-        { "itemId": "7", "amount": 155 }
+        {
+          "itemId": "4",
+          "amount": 45
+        },
+        {
+          "itemId": "6",
+          "amount": 15
+        },
+        {
+          "itemId": "7",
+          "amount": 155
+        }
       ]
     },
     {
@@ -136,9 +172,18 @@
       "clientId": null,
       "sellPrice": 1950,
       "components": [
-        { "itemId": "5", "amount": 25 },
-        { "itemId": "6", "amount": 18 },
-        { "itemId": "7", "amount": 160 }
+        {
+          "itemId": "5",
+          "amount": 25
+        },
+        {
+          "itemId": "6",
+          "amount": 18
+        },
+        {
+          "itemId": "7",
+          "amount": 160
+        }
       ]
     },
     {
@@ -148,10 +193,22 @@
       "clientId": "1",
       "sellPrice": 2300,
       "components": [
-        { "itemId": "2", "amount": 28 },
-        { "itemId": "4", "amount": 8 },
-        { "itemId": "6", "amount": 20 },
-        { "itemId": "7", "amount": 155 }
+        {
+          "itemId": "2",
+          "amount": 12
+        },
+        {
+          "itemId": "4",
+          "amount": 8
+        },
+        {
+          "itemId": "6",
+          "amount": 20
+        },
+        {
+          "itemId": "7",
+          "amount": 155
+        }
       ]
     },
     {
@@ -161,10 +218,22 @@
       "clientId": "3",
       "sellPrice": 2200,
       "components": [
-        { "itemId": "4", "amount": 30 },
-        { "itemId": "5", "amount": 12 },
-        { "itemId": "6", "amount": 18 },
-        { "itemId": "7", "amount": 160 }
+        {
+          "itemId": "4",
+          "amount": 30
+        },
+        {
+          "itemId": "5",
+          "amount": 12
+        },
+        {
+          "itemId": "6",
+          "amount": 18
+        },
+        {
+          "itemId": "7",
+          "amount": 160
+        }
       ]
     }
   ],
@@ -220,8 +289,14 @@
       "status": "delivered",
       "totalPrice": 33200,
       "products": [
-        { "productId": "2", "quantity": 12 },
-        { "productId": "6", "quantity": 4 }
+        {
+          "productId": "2",
+          "quantity": 12
+        },
+        {
+          "productId": "6",
+          "quantity": 4
+        }
       ]
     },
     {
@@ -231,8 +306,14 @@
       "status": "in_progress",
       "totalPrice": 27700,
       "products": [
-        { "productId": "1", "quantity": 8 },
-        { "productId": "3", "quantity": 6 }
+        {
+          "productId": "1",
+          "quantity": 8
+        },
+        {
+          "productId": "3",
+          "quantity": 6
+        }
       ]
     },
     {
@@ -241,7 +322,12 @@
       "date": "2026-05-27",
       "status": "pending",
       "totalPrice": 44000,
-      "products": [{ "productId": "7", "quantity": 20 }]
+      "products": [
+        {
+          "productId": "7",
+          "quantity": 20
+        }
+      ]
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
