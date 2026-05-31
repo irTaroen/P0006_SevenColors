@@ -44,14 +44,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
           {/* Expanded: controls sit next to logo */}
           <div className="ml-auto flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:hidden">
-            <ThemeToggle />
             <SidebarTrigger />
+            <ThemeToggle />
           </div>
         </div>
         {/* Collapsed: controls appear below icon; expanded: invisible spacer keeps header height consistent */}
         <div className="flex flex-col gap-0.5 opacity-0 pointer-events-none group-data-[collapsible=icon]:opacity-100 group-data-[collapsible=icon]:pointer-events-auto">
-          <ThemeToggle />
           <SidebarTrigger />
+          <ThemeToggle />
         </div>
       </SidebarHeader>
       <SidebarContent>

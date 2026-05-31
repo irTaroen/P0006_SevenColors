@@ -5,7 +5,9 @@ import { createColumnHelper } from "@tanstack/react-table"
 import { BuildingIcon } from "lucide-react"
 
 import { DataTable } from "@/components/data-table/data-table"
-import { EditableCell } from "@/components/data-table/editable-cell"
+import { FormField } from "@/components/data-table/form-field"
+import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
+import { Input } from "@/components/ui/input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
 
 type Client = {
@@ -16,10 +18,12 @@ type Client = {
   address: string
 }
 
+type ClientForm = Omit<Client, "id">
+
 const columnHelper = createColumnHelper<Client>()
 
-const DEFAULT_CLIENT: Omit<Client, "id"> = {
-  name: "New Client",
+const EMPTY_FORM: ClientForm = {
+  name: "",
   email: "",
   phone: "",
   address: "",
@@ -28,6 +32,10 @@ const DEFAULT_CLIENT: Omit<Client, "id"> = {
 export default function ClientsPage() {
   const [data, setData] = React.useState<Client[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [editingId, setEditingId] = React.useState<string | null>(null)
+  const [form, setForm] = React.useState<ClientForm>(EMPTY_FORM)
+  const [isSaving, setIsSaving] = React.useState(false)
 
   React.useEffect(() => {
     fetchResource<Client>("clients")
@@ -35,63 +43,68 @@ export default function ClientsPage() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const handleUpdate = React.useCallback(async (id: string, field: string, value: string) => {
-    const updated = await updateResource<Client>("clients", id, { [field]: value })
-    setData((prev) => prev.map((item) => (item.id === id ? { ...item, ...updated } : item)))
-  }, [])
+  const openCreate = () => {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setDialogOpen(true)
+  }
+
+  const openEdit = (client: Client) => {
+    setEditingId(client.id)
+    setForm({
+      name: client.name,
+      email: client.email,
+      phone: client.phone,
+      address: client.address,
+    })
+    setDialogOpen(true)
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      if (editingId) {
+        const updated = await updateResource<Client>("clients", editingId, form)
+        setData((prev) => prev.map((c) => (c.id === editingId ? { ...c, ...updated } : c)))
+      } else {
+        const created = await createResource<Client>("clients", form)
+        setData((prev) => [...prev, created])
+      }
+      setDialogOpen(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const handleDelete = React.useCallback(async (id: string) => {
     await deleteResource("clients", id)
-    setData((prev) => prev.filter((item) => item.id !== id))
-  }, [])
-
-  const handleAdd = React.useCallback(async () => {
-    const created = await createResource<Client>("clients", DEFAULT_CLIENT)
-    setData((prev) => [...prev, created])
+    setData((prev) => prev.filter((c) => c.id !== id))
   }, [])
 
   const columns = React.useMemo(
     () => [
       columnHelper.accessor("name", {
         header: "Name",
-        cell: ({ row, getValue }) => (
-          <EditableCell
-            value={getValue()}
-            onSave={(v) => handleUpdate(row.original.id, "name", v)}
-          />
-        ),
+        cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
       }),
       columnHelper.accessor("email", {
         header: "Email",
-        cell: ({ row, getValue }) => (
-          <EditableCell
-            value={getValue()}
-            type="email"
-            onSave={(v) => handleUpdate(row.original.id, "email", v)}
-          />
-        ),
+        cell: ({ getValue }) => getValue() || "—",
       }),
       columnHelper.accessor("phone", {
         header: "Phone",
-        cell: ({ row, getValue }) => (
-          <EditableCell
-            value={getValue()}
-            type="tel"
-            onSave={(v) => handleUpdate(row.original.id, "phone", v)}
-          />
-        ),
+        cell: ({ getValue }) => getValue() || "—",
       }),
       columnHelper.accessor("address", {
         header: "Address",
-        cell: ({ row, getValue }) => (
-          <EditableCell
-            value={getValue()}
-            onSave={(v) => handleUpdate(row.original.id, "address", v)}
-          />
+        cell: ({ getValue }) => (
+          <span className="block max-w-[200px] truncate text-muted-foreground" title={getValue()}>
+            {getValue() || "—"}
+          </span>
         ),
       }),
     ],
-    [handleUpdate],
+    [],
   )
 
   return (
@@ -100,7 +113,9 @@ export default function ClientsPage() {
         <BuildingIcon className="size-5 text-muted-foreground" />
         <div>
           <h1 className="text-lg font-semibold">Clients</h1>
-          <p className="text-xs text-muted-foreground">Click any cell to edit in place.</p>
+          <p className="text-xs text-muted-foreground">
+            Customer accounts. Use the edit icon or add button to manage records.
+          </p>
         </div>
       </div>
 
@@ -109,9 +124,53 @@ export default function ClientsPage() {
         columns={columns}
         isLoading={isLoading}
         onDelete={handleDelete}
-        onAdd={handleAdd}
+        onAddClick={openCreate}
+        onEdit={openEdit}
         addLabel="Add client"
+        getRowLabel={(row) => row.name}
       />
+
+      <ResourceFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title={editingId ? "Edit client" : "Add client"}
+        description={editingId ? "Update this client and save your changes." : "Fill in the details for the new client."}
+        onSubmit={handleSave}
+        submitLabel={editingId ? "Save changes" : "Create client"}
+        isSubmitting={isSaving}
+      >
+        <FormField label="Name" htmlFor="client-name">
+          <Input
+            id="client-name"
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            required
+          />
+        </FormField>
+        <FormField label="Email" htmlFor="client-email">
+          <Input
+            id="client-email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+          />
+        </FormField>
+        <FormField label="Phone" htmlFor="client-phone">
+          <Input
+            id="client-phone"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+          />
+        </FormField>
+        <FormField label="Address" htmlFor="client-address">
+          <Input
+            id="client-address"
+            value={form.address}
+            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+          />
+        </FormField>
+      </ResourceFormDialog>
     </div>
   )
 }

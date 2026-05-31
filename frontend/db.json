@@ -2,82 +2,169 @@
   "clients": [
     {
       "id": "1",
-      "name": "Acme Corp",
-      "email": "contact@acme.com",
-      "phone": "+1 555-0101",
-      "address": "123 Main St, Springfield"
+      "name": "Tops",
+      "email": "contact@tops.com",
+      "phone": "+66 2 123 4567",
+      "address": "88/12 Sukhumvit Road, Khlong Toei, Bangkok 10110"
     },
     {
       "id": "2",
-      "name": "Globex Inc",
-      "email": "info@globex.com",
-      "phone": "+1 555-0102",
-      "address": "456 Oak Ave, Shelbyville"
+      "name": "Makro",
+      "email": "info@makro.com",
+      "phone": "+66 38 456 7890",
+      "address": "45 Moo 5 Sukhumvit Road, Bang Lamung, Chon Buri 20150"
     },
     {
       "id": "3",
-      "name": "Initech LLC",
-      "email": "hello@initech.com",
-      "phone": "+1 555-0103",
-      "address": "789 Pine Rd, Capital City"
+      "name": "Honda",
+      "email": "hello@honda.com",
+      "phone": "+66 81 234 5678",
+      "address": "199/1 Eastern Seaboard Industrial Estate, Pluak Daeng, Rayong 21140"
     }
   ],
   "items": [
     {
       "id": "1",
-      "name": "Steel Rod",
+      "name": "Red Pigment",
       "unit": "kg",
-      "unitPrice": 4.5
+      "buyPrice": 12.5,
+      "sellPrice": 15,
+      "supplier": "ChemColor BV"
     },
     {
       "id": "2",
-      "name": "Copper Wire",
-      "unit": "m",
-      "unitPrice": 2.75
+      "name": "Blue Pigment",
+      "unit": "kg",
+      "buyPrice": 14,
+      "sellPrice": 17,
+      "supplier": "ChemColor BV"
     },
     {
       "id": "3",
-      "name": "Plastic Sheet",
-      "unit": "m²",
-      "unitPrice": 8.0
+      "name": "Green Pigment",
+      "unit": "kg",
+      "buyPrice": 13.25,
+      "sellPrice": 16,
+      "supplier": "ChemColor BV"
     },
     {
       "id": "4",
-      "name": "Rubber Seal",
-      "unit": "pcs",
-      "unitPrice": 0.9
+      "name": "White Pigment",
+      "unit": "kg",
+      "buyPrice": 8.5,
+      "sellPrice": 10.5,
+      "supplier": "Nordic Pigments"
     },
     {
       "id": "5",
-      "name": "Aluminium Profile",
-      "unit": "m",
-      "unitPrice": 6.2
+      "name": "Black Pigment",
+      "unit": "kg",
+      "buyPrice": 9.75,
+      "sellPrice": 12,
+      "supplier": "Nordic Pigments"
+    },
+    {
+      "id": "6",
+      "name": "Paint Thinner",
+      "unit": "l",
+      "buyPrice": 2.4,
+      "sellPrice": 3.5,
+      "supplier": "Solventech"
+    },
+    {
+      "id": "7",
+      "name": "Resin",
+      "unit": "kg",
+      "buyPrice": 6.8,
+      "sellPrice": 9,
+      "supplier": "PolyResin Co."
     }
   ],
   "products": [
     {
       "id": "1",
-      "name": "Basic Frame",
+      "name": "Red Paint",
+      "unit": "barrels",
+      "clientId": null,
+      "sellPrice": 2000,
       "components": [
-        { "itemId": "1", "amount": 5 },
-        { "itemId": "5", "amount": 2 }
+        { "itemId": "1", "amount": 22 },
+        { "itemId": "6", "amount": 18 },
+        { "itemId": "7", "amount": 160 }
       ]
     },
     {
       "id": "2",
-      "name": "Wiring Kit",
+      "name": "Blue Paint",
+      "unit": "barrels",
+      "clientId": null,
+      "sellPrice": 2000,
       "components": [
-        { "itemId": "2", "amount": 10 },
-        { "itemId": "4", "amount": 4 }
+        { "itemId": "2", "amount": 20 },
+        { "itemId": "6", "amount": 18 },
+        { "itemId": "7", "amount": 160 }
       ]
     },
     {
       "id": "3",
-      "name": "Enclosure Panel",
+      "name": "Green Paint",
+      "unit": "barrels",
+      "clientId": null,
+      "sellPrice": 1950,
       "components": [
-        { "itemId": "3", "amount": 1.5 },
+        { "itemId": "3", "amount": 18 },
+        { "itemId": "6", "amount": 18 },
+        { "itemId": "7", "amount": 160 }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "White Paint",
+      "unit": "barrels",
+      "clientId": null,
+      "sellPrice": 2100,
+      "components": [
+        { "itemId": "4", "amount": 45 },
+        { "itemId": "6", "amount": 15 },
+        { "itemId": "7", "amount": 155 }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Black Paint",
+      "unit": "barrels",
+      "clientId": null,
+      "sellPrice": 1950,
+      "components": [
+        { "itemId": "5", "amount": 25 },
+        { "itemId": "6", "amount": 18 },
+        { "itemId": "7", "amount": 160 }
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Tops Signature Blue",
+      "unit": "barrels",
+      "clientId": "1",
+      "sellPrice": 2300,
+      "components": [
+        { "itemId": "2", "amount": 28 },
         { "itemId": "4", "amount": 8 },
-        { "itemId": "1", "amount": 2 }
+        { "itemId": "6", "amount": 20 },
+        { "itemId": "7", "amount": 155 }
+      ]
+    },
+    {
+      "id": "7",
+      "name": "Honda Factory Gray",
+      "unit": "barrels",
+      "clientId": "3",
+      "sellPrice": 2200,
+      "components": [
+        { "itemId": "4", "amount": 30 },
+        { "itemId": "5", "amount": 12 },
+        { "itemId": "6", "amount": 18 },
+        { "itemId": "7", "amount": 160 }
       ]
     }
   ],
@@ -85,32 +172,44 @@
     {
       "id": "1",
       "itemId": "1",
-      "stock": 320,
+      "stock": 420,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "2",
       "itemId": "2",
-      "stock": 850,
+      "stock": 380,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "3",
       "itemId": "3",
-      "stock": 45,
-      "warehouse": "Secondary Warehouse"
+      "stock": 210,
+      "warehouse": "Main Warehouse"
     },
     {
       "id": "4",
       "itemId": "4",
-      "stock": 1200,
+      "stock": 950,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "5",
       "itemId": "5",
-      "stock": 60,
+      "stock": 340,
       "warehouse": "Secondary Warehouse"
+    },
+    {
+      "id": "6",
+      "itemId": "6",
+      "stock": 2400,
+      "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "7",
+      "itemId": "7",
+      "stock": 5200,
+      "warehouse": "Main Warehouse"
     }
   ],
   "orders": [
@@ -119,9 +218,10 @@
       "clientId": "1",
       "date": "2026-05-10",
       "status": "delivered",
+      "totalPrice": 33200,
       "products": [
-        { "productId": "1", "quantity": 3 },
-        { "productId": "2", "quantity": 1 }
+        { "productId": "2", "quantity": 12 },
+        { "productId": "6", "quantity": 4 }
       ]
     },
     {
@@ -129,8 +229,10 @@
       "clientId": "2",
       "date": "2026-05-18",
       "status": "in_progress",
+      "totalPrice": 27700,
       "products": [
-        { "productId": "3", "quantity": 2 }
+        { "productId": "1", "quantity": 8 },
+        { "productId": "3", "quantity": 6 }
       ]
     },
     {
@@ -138,10 +240,9 @@
       "clientId": "3",
       "date": "2026-05-27",
       "status": "pending",
-      "products": [
-        { "productId": "1", "quantity": 1 },
-        { "productId": "3", "quantity": 4 }
-      ]
+      "totalPrice": 44000,
+      "products": [{ "productId": "7", "quantity": 20 }]
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
