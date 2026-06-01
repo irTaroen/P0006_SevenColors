@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { useActiveClient } from "@/providers"
+import { useActiveClient, useResourceSync } from "@/providers"
 import { Loader2 } from "lucide-react"
 import { KpiCard } from "./card"
 import { fetchKpiData } from "./api"
@@ -22,16 +22,17 @@ const KPI_CARDS = [
 
 export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientCount = 0 }: Props) {
   const { activeClientId } = useActiveClient()
+  const syncToken = useResourceSync("orders", "inventory", "items", "products")
 
   const { data, isPending, isError } = useQuery({
-    queryKey: ["kpi-data", activeClientId],
+    queryKey: ["kpi-data", activeClientId, syncToken],
     queryFn: () => fetchKpiData(activeClientId),
   })
 
   if (isError) {
     return (
       <p className="px-9 text-sm text-destructive">
-        Failed to load KPI data. Make sure the JSON server is running on port 3001.
+        Failed to load KPI data. Restart the dev server with "npm run dev".
       </p>
     )
   }

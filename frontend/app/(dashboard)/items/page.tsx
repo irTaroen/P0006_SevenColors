@@ -10,6 +10,7 @@ import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog
 import { Input } from "@/components/ui/input"
 import { NumberInput } from "@/components/ui/number-input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
+import { useResourceSync } from "@/providers"
 import { formatPrice } from "@/lib/pricing"
 
 type Item = {
@@ -18,6 +19,7 @@ type Item = {
   unit: string
   buyPrice: number
   sellPrice: number
+  minimumInventory: number
   supplier?: string
 }
 
@@ -30,6 +32,7 @@ const EMPTY_FORM: ItemForm = {
   unit: "",
   buyPrice: 0,
   sellPrice: 0,
+  minimumInventory: 0,
   supplier: "",
 }
 
@@ -40,12 +43,13 @@ export default function ItemsPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [form, setForm] = React.useState<ItemForm>(EMPTY_FORM)
   const [isSaving, setIsSaving] = React.useState(false)
+  const syncToken = useResourceSync("items")
 
   React.useEffect(() => {
     fetchResource<Item>("items")
       .then(setData)
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [syncToken])
 
   const openCreate = () => {
     setEditingId(null)
@@ -60,6 +64,7 @@ export default function ItemsPage() {
       unit: item.unit,
       buyPrice: item.buyPrice,
       sellPrice: item.sellPrice,
+      minimumInventory: item.minimumInventory ?? 0,
       supplier: item.supplier ?? "",
     })
     setDialogOpen(true)
@@ -72,6 +77,7 @@ export default function ItemsPage() {
         ...form,
         buyPrice: Number(form.buyPrice) || 0,
         sellPrice: Number(form.sellPrice) || 0,
+        minimumInventory: Number(form.minimumInventory) || 0,
       }
       if (editingId) {
         const updated = await updateResource<Item>("items", editingId, payload)
@@ -103,18 +109,38 @@ export default function ItemsPage() {
       }),
       columnHelper.accessor("buyPrice", {
         header: "Buy price",
+        meta: {
+          filterText: (row) => `${formatPrice(row.buyPrice)} ${row.buyPrice}`,
+        },
         cell: ({ getValue }) => (
           <span className="tabular-nums">{formatPrice(getValue())}</span>
         ),
       }),
       columnHelper.accessor("sellPrice", {
         header: "Sell price",
+        meta: {
+          filterText: (row) => `${formatPrice(row.sellPrice)} ${row.sellPrice}`,
+        },
         cell: ({ getValue }) => (
           <span className="tabular-nums">{formatPrice(getValue())}</span>
         ),
       }),
+      columnHelper.accessor("minimumInventory", {
+        header: "Minimum inventory",
+        meta: {
+          filterText: (row) => `${row.minimumInventory ?? 0} ${row.unit}`,
+        },
+        cell: ({ row, getValue }) => (
+          <span className="tabular-nums">
+            {getValue() ?? 0} {row.original.unit}
+          </span>
+        ),
+      }),
       columnHelper.accessor("supplier", {
         header: "Supplier",
+        meta: {
+          filterText: (row) => row.supplier ?? "",
+        },
         cell: ({ getValue }) => (
           <span className="text-muted-foreground">{getValue() ?? "—"}</span>
         ),
@@ -177,7 +203,6 @@ export default function ItemsPage() {
             id="item-buy-price"
             value={form.buyPrice}
             onChange={(buyPrice) => setForm((f) => ({ ...f, buyPrice }))}
-            required
           />
         </FormField>
         <FormField label="Sell price" htmlFor="item-sell-price">
@@ -185,7 +210,14 @@ export default function ItemsPage() {
             id="item-sell-price"
             value={form.sellPrice}
             onChange={(sellPrice) => setForm((f) => ({ ...f, sellPrice }))}
-            required
+          />
+        </FormField>
+        <FormField label="Minimum inventory" htmlFor="item-minimum-inventory">
+          <NumberInput
+            id="item-minimum-inventory"
+            value={form.minimumInventory}
+            onChange={(minimumInventory) => setForm((f) => ({ ...f, minimumInventory }))}
+            integerOnly
           />
         </FormField>
         <FormField label="Supplier" htmlFor="item-supplier">

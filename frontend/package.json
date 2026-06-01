@@ -5,12 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "node scripts/dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "db": "json-server db.json --port 3001"
+    "db": "node --experimental-strip-types server/index.ts",
+    "db:stop": "lsof -ti:3001 | xargs kill 2>/dev/null || true"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-sans",
 })
 
@@ -27,7 +27,7 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", poppins.variable)}
     >
       <body>
-        {/* Starfield — position: fixed, shown in dark mode via .dark .starfield CSS */}
+        {/* Starfield — position: fixed, shown in dark mode via [data-theme="dark"] .starfield CSS */}
         <div className="starfield" aria-hidden="true" />
         <ThemeProvider>{children}</ThemeProvider>
       </body>

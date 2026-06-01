@@ -23,6 +23,19 @@ export function computeOrderTotalPrice(
   }, 0)
 }
 
+export function computeOrderTotalCost(
+  lines: OrderLine[],
+  products: Pick<ProductPricing, "id" | "components">[],
+  items: ItemPricing[],
+): number {
+  return lines.reduce((sum, line) => {
+    const product = products.find((entry) => entry.id === line.productId)
+    if (!product?.components?.length) return sum
+    const unitCost = computeProductTotalCost(product.components, items)
+    return sum + unitCost * line.quantity
+  }, 0)
+}
+
 export function formatPrice(value: number): string {
   return value.toLocaleString(undefined, {
     minimumFractionDigits: 2,

@@ -9,6 +9,7 @@ import { FormField } from "@/components/data-table/form-field"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { Input } from "@/components/ui/input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
+import { useResourceSync } from "@/providers"
 
 type Client = {
   id: string
@@ -36,12 +37,13 @@ export default function ClientsPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [form, setForm] = React.useState<ClientForm>(EMPTY_FORM)
   const [isSaving, setIsSaving] = React.useState(false)
+  const syncToken = useResourceSync("clients")
 
   React.useEffect(() => {
     fetchResource<Client>("clients")
       .then(setData)
       .finally(() => setIsLoading(false))
-  }, [])
+  }, [syncToken])
 
   const openCreate = () => {
     setEditingId(null)
@@ -89,14 +91,17 @@ export default function ClientsPage() {
       }),
       columnHelper.accessor("email", {
         header: "Email",
+        meta: { filterText: (row) => row.email ?? "" },
         cell: ({ getValue }) => getValue() || "—",
       }),
       columnHelper.accessor("phone", {
         header: "Phone",
+        meta: { filterText: (row) => row.phone ?? "" },
         cell: ({ getValue }) => getValue() || "—",
       }),
       columnHelper.accessor("address", {
         header: "Address",
+        meta: { filterText: (row) => row.address ?? "" },
         cell: ({ getValue }) => (
           <span className="block max-w-[200px] truncate text-muted-foreground" title={getValue()}>
             {getValue() || "—"}

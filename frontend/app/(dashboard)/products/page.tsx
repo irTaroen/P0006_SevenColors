@@ -13,6 +13,7 @@ import { SelectField } from "@/components/data-table/select-field"
 import { Input } from "@/components/ui/input"
 import { NumberInput } from "@/components/ui/number-input"
 import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
+import { useResourceSync } from "@/providers"
 import { computeProductTotalCost, formatPrice } from "@/lib/pricing"
 
 type Component = { itemId: string; amount: number }
@@ -119,6 +120,7 @@ export default function ProductsPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [form, setForm] = React.useState<ProductForm>(EMPTY_FORM)
   const [isSaving, setIsSaving] = React.useState(false)
+  const syncToken = useResourceSync("products", "items", "clients")
 
   React.useEffect(() => {
     Promise.all([
@@ -130,7 +132,7 @@ export default function ProductsPage() {
       setItems(itemList)
       setClients(clientList)
     }).finally(() => setIsLoading(false))
-  }, [])
+  }, [syncToken])
 
   const openCreate = () => {
     setEditingId(null)
@@ -203,6 +205,12 @@ export default function ProductsPage() {
       }),
       columnHelper.accessor("clientId", {
         header: "Client",
+        meta: {
+          filterText: (row) => {
+            if (!row.clientId) return "Standard catalog"
+            return clients.find((c) => c.id === row.clientId)?.name ?? row.clientId
+          },
+        },
         cell: ({ getValue }) => {
           const clientId = getValue()
           if (!clientId) {
@@ -214,6 +222,9 @@ export default function ProductsPage() {
       }),
       columnHelper.accessor("components", {
         header: "Components",
+        meta: {
+          filterText: (row) => summarizeComponents(row.components),
+        },
         cell: ({ getValue }) => (
           <span className="block truncate text-xs text-muted-foreground" title={summarizeComponents(getValue())}>
             {summarizeComponents(getValue())}
@@ -223,6 +234,10 @@ export default function ProductsPage() {
       columnHelper.display({
         id: "totalCost",
         header: () => <span className="block text-right">Total cost</span>,
+        meta: {
+          filterText: (row) =>
+            formatPrice(computeProductTotalCost(row.components, items)),
+        },
         cell: ({ row }) => (
           <span className="block text-right tabular-nums text-muted-foreground">
             {formatPrice(computeProductTotalCost(row.original.components, items))}
@@ -231,6 +246,9 @@ export default function ProductsPage() {
       }),
       columnHelper.accessor("sellPrice", {
         header: () => <span className="block text-right">Sell price</span>,
+        meta: {
+          filterText: (row) => `${formatPrice(row.sellPrice)} ${row.sellPrice}`,
+        },
         cell: ({ getValue }) => (
           <span className="block text-right tabular-nums font-medium">{formatPrice(getValue())}</span>
         ),
@@ -304,7 +322,6 @@ export default function ProductsPage() {
             id="product-sell-price"
             value={form.sellPrice}
             onChange={(sellPrice) => setForm((f) => ({ ...f, sellPrice }))}
-            required
           />
         </FormField>
         <FormField label="Total cost" htmlFor="product-total-cost">

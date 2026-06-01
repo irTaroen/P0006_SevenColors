@@ -8,6 +8,8 @@ import { NumberInput } from "@/components/ui/number-input"
 
 type Option = { id: string; label: string }
 
+type AvailableStock = { available: number; unit?: string }
+
 export function LineItemsEditor<T>({
   items,
   options,
@@ -19,6 +21,7 @@ export function LineItemsEditor<T>({
   removeItem,
   optionLabel = "Item",
   quantityLabel = "Amount",
+  getAvailableStock,
 }: {
   items: T[]
   options: Option[]
@@ -30,6 +33,7 @@ export function LineItemsEditor<T>({
   removeItem: (index: number) => void
   optionLabel?: string
   quantityLabel?: string
+  getAvailableStock?: (optionId: string) => AvailableStock | null
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -44,10 +48,23 @@ export function LineItemsEditor<T>({
         <p className="text-xs text-muted-foreground">No {optionLabel.toLowerCase()}s added.</p>
       ) : (
         <div className="flex flex-col gap-2">
-          {items.map((item, index) => (
-            <div key={index} className="grid grid-cols-[1fr_88px_32px] items-center gap-2">
+          {items.map((item, index) => {
+            const optionId = getOptionId(item)
+            const quantity = getQuantity(item)
+            const stock = getAvailableStock?.(optionId)
+            const insufficient = stock !== undefined && stock !== null && quantity > stock.available
+
+            return (
+            <div
+              key={index}
+              className={
+                getAvailableStock
+                  ? "grid grid-cols-[1fr_minmax(5.5rem,auto)_88px_32px] items-center gap-2"
+                  : "grid grid-cols-[1fr_88px_32px] items-center gap-2"
+              }
+            >
               <SelectField
-                value={getOptionId(item)}
+                value={optionId}
                 onChange={(id) => setOptionId(index, id)}
                 required
               >
@@ -57,9 +74,25 @@ export function LineItemsEditor<T>({
                   </option>
                 ))}
               </SelectField>
+              {getAvailableStock ? (
+                <span
+                  className={`text-[11px] tabular-nums whitespace-nowrap ${
+                    insufficient ? "text-destructive" : "text-muted-foreground"
+                  }`}
+                  title={
+                    stock
+                      ? `${stock.available}${stock.unit ? ` ${stock.unit}` : ""} available in inventory`
+                      : undefined
+                  }
+                >
+                  {stock
+                    ? `${stock.available}${stock.unit ? ` ${stock.unit}` : ""} avail.`
+                    : "—"}
+                </span>
+              ) : null}
               <NumberInput
-                value={getQuantity(item)}
-                onChange={(quantity) => setQuantity(index, quantity)}
+                value={quantity}
+                onChange={(value) => setQuantity(index, value)}
                 aria-label={quantityLabel}
               />
               <Button
@@ -73,7 +106,8 @@ export function LineItemsEditor<T>({
                 <Trash2Icon className="size-3.5" />
               </Button>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

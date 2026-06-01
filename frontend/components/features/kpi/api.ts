@@ -12,7 +12,7 @@ export type KpiData = {
 type Order     = { id: string; clientId: string; status: string; products: unknown[] }
 type Product   = { id: string; components: { itemId: string }[] }
 type Item      = { id: string }
-type Inventory = { id: string; stock: number }
+type Inventory = { id: string; available: number }
 
 export async function fetchKpiData(clientId?: string | null): Promise<KpiData> {
   const [orders, products, items, inventory] = await Promise.all([
@@ -33,7 +33,7 @@ export async function fetchKpiData(clientId?: string | null): Promise<KpiData> {
   return {
     totalOrders:    { total: scopedOrders.length },
     totalProducing: { total: scopedOrders.filter((o) => o.status === "in_progress").length },
-    totalInventory: { total: inventory.filter((e) => e.stock > 0).length },
+    totalInventory: { total: inventory.filter((e) => (e.available ?? 0) > 0).length },
     totalSpill:     { total: items.filter((i) => !usedItemIds.has(i.id)).length },
   }
 }

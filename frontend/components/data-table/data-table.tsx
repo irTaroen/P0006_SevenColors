@@ -4,12 +4,16 @@ import * as React from "react"
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   useReactTable,
   type ColumnDef,
+  type ColumnFiltersState,
 } from "@tanstack/react-table"
 import { ChevronRightIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
+import { ColumnFilterInput } from "@/components/data-table/column-filter-input"
 import { ConfirmDeleteDialog } from "@/components/data-table/confirm-delete-dialog"
+import { includesStringFilter } from "@/components/data-table/table-filter-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -30,6 +34,7 @@ interface DataTableProps<T extends { id: string }> {
   onEdit?: (row: T) => void
   addLabel?: string
   getRowLabel?: (row: T) => string
+  canDelete?: (row: T) => boolean
   /** Full-width expanded panel (legacy). Prefer renderExpandedRowCells for column alignment. */
   renderExpandedRow?: (row: T) => React.ReactNode
   /** One cell per data column, aligned with the table header row. */
@@ -46,6 +51,7 @@ export function DataTable<T extends { id: string }>({
   onEdit,
   addLabel = "Add row",
   getRowLabel,
+  canDelete,
   renderExpandedRow,
   renderExpandedRowCells,
   colgroup,
@@ -53,6 +59,7 @@ export function DataTable<T extends { id: string }>({
   const [deleting, setDeleting] = React.useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<T | null>(null)
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set())
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const expandable = Boolean(renderExpandedRow ?? renderExpandedRowCells)
   const expandedCellClassName = "whitespace-normal align-top bg-muted/30 p-2"
   const totalColumns = columns.length + (expandable ? 1 : 0) + 1
@@ -80,8 +87,22 @@ export function DataTable<T extends { id: string }>({
   const table = useReactTable({
     data,
     columns,
+    state: { columnFilters },
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    filterFns: {
+      includesString: includesStringFilter,
+    },
+    defaultColumn: {
+      filterFn: "includesString",
+      enableColumnFilter: true,
+    },
   })
+
+  const filteredCount = table.getFilteredRowModel().rows.length
+  const totalCount = table.getCoreRowModel().rows.length
+  const hasActiveFilters = columnFilters.some((f) => String(f.value ?? "").trim())
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return
@@ -107,17 +128,32 @@ export function DataTable<T extends { id: string }>({
           {colgroup}
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {expandable && <TableHead className="w-8" />}
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-                <TableHead className="w-[72px]" />
-              </TableRow>
+              <React.Fragment key={headerGroup.id}>
+                <TableRow className="hover:bg-transparent">
+                  {expandable && <TableHead className="w-8" />}
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-[72px]" />
+                </TableRow>
+                {!isLoading && (
+                  <TableRow className="hover:bg-transparent border-b">
+                    {expandable && <TableHead className="w-8 p-1" />}
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={`${header.id}-filter`} className="p-1 align-top">
+                        {header.column.getCanFilter() ? (
+                          <ColumnFilterInput column={header.column} />
+                        ) : null}
+                      </TableHead>
+                    ))}
+                    <TableHead className="w-[72px] p-1" />
+                  </TableRow>
+                )}
+              </React.Fragment>
             ))}
           </TableHeader>
           <TableBody>
@@ -137,14 +173,14 @@ export function DataTable<T extends { id: string }>({
                   <TableCell />
                 </TableRow>
               ))
-            ) : table.getRowModel().rows.length === 0 ? (
+            ) : filteredCount === 0 ? (
               <TableRow>
                 <TableCell colSpan={totalColumns} className="h-20 text-center text-muted-foreground">
-                  No records found.
+                  {hasActiveFilters ? "No records match your filters." : "No records found."}
                 </TableCell>
               </TableRow>
             ) : (
-              table.getRowModel().rows.map((row) => {
+              table.getFilteredRowModel().rows.map((row) => {
                 const isExpanded = expandedIds.has(row.original.id)
 
                 return (
@@ -183,19 +219,21 @@ export function DataTable<T extends { id: string }>({
                               <PencilIcon className="size-3.5" />
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            disabled={deleting === row.original.id}
-                            aria-label="Delete row"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setDeleteTarget(row.original)
-                            }}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2Icon className="size-3.5" />
-                          </Button>
+                          {(canDelete?.(row.original) ?? true) && (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              disabled={deleting === row.original.id}
+                              aria-label="Delete row"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDeleteTarget(row.original)
+                              }}
+                              className="text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2Icon className="size-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -227,7 +265,9 @@ export function DataTable<T extends { id: string }>({
 
       {!isLoading && (
         <p className="text-xs text-muted-foreground">
-          {table.getRowModel().rows.length} record{table.getRowModel().rows.length !== 1 ? "s" : ""}
+          {hasActiveFilters
+            ? `${filteredCount} of ${totalCount} record${totalCount !== 1 ? "s" : ""}`
+            : `${filteredCount} record${filteredCount !== 1 ? "s" : ""}`}
         </p>
       )}
 

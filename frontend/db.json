@@ -29,6 +29,7 @@
       "unit": "kg",
       "buyPrice": 12.5,
       "sellPrice": 15,
+      "minimumInventory": 100,
       "supplier": "ChemColor BV"
     },
     {
@@ -37,6 +38,7 @@
       "unit": "kg",
       "buyPrice": 14,
       "sellPrice": 17,
+      "minimumInventory": 100,
       "supplier": "ChemColor BV"
     },
     {
@@ -45,6 +47,7 @@
       "unit": "kg",
       "buyPrice": 13.25,
       "sellPrice": 16,
+      "minimumInventory": 80,
       "supplier": "ChemColor BV"
     },
     {
@@ -53,6 +56,7 @@
       "unit": "kg",
       "buyPrice": 8.5,
       "sellPrice": 10.5,
+      "minimumInventory": 200,
       "supplier": "Nordic Pigments"
     },
     {
@@ -61,6 +65,7 @@
       "unit": "kg",
       "buyPrice": 9.75,
       "sellPrice": 12,
+      "minimumInventory": 80,
       "supplier": "Nordic Pigments"
     },
     {
@@ -69,6 +74,7 @@
       "unit": "l",
       "buyPrice": 2.4,
       "sellPrice": 3.5,
+      "minimumInventory": 500,
       "supplier": "Solventech"
     },
     {
@@ -77,6 +83,7 @@
       "unit": "kg",
       "buyPrice": 6.8,
       "sellPrice": 9,
+      "minimumInventory": 1000,
       "supplier": "PolyResin Co."
     }
   ],
@@ -240,92 +247,245 @@
   "inventory": [
     {
       "id": "1",
+      "type": "item",
       "itemId": "1",
-      "stock": 420,
+      "productId": null,
+      "available": 780,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "2",
+      "type": "item",
       "itemId": "2",
-      "stock": 380,
+      "productId": null,
+      "available": 1000,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "3",
+      "type": "item",
       "itemId": "3",
-      "stock": 210,
+      "productId": null,
+      "available": 1000,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "4",
+      "type": "item",
       "itemId": "4",
-      "stock": 950,
+      "productId": null,
+      "available": 1000,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "5",
+      "type": "item",
       "itemId": "5",
-      "stock": 340,
+      "productId": null,
+      "available": 1000,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Secondary Warehouse"
     },
     {
       "id": "6",
+      "type": "item",
       "itemId": "6",
-      "stock": 2400,
+      "productId": null,
+      "available": 2120,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Main Warehouse"
     },
     {
       "id": "7",
+      "type": "item",
       "itemId": "7",
-      "stock": 5200,
+      "productId": null,
+      "available": 3500,
+      "reserved": 0,
+      "inUse": 0,
       "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "8",
+      "type": "product",
+      "itemId": null,
+      "productId": "1",
+      "available": 0,
+      "reserved": 10,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
+    },
+    {
+      "id": "9",
+      "type": "product",
+      "itemId": null,
+      "productId": "2",
+      "available": 50,
+      "reserved": 0,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
+    },
+    {
+      "id": "10",
+      "type": "product",
+      "itemId": null,
+      "productId": "3",
+      "available": 50,
+      "reserved": 0,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
+    },
+    {
+      "id": "11",
+      "type": "product",
+      "itemId": null,
+      "productId": "4",
+      "available": 50,
+      "reserved": 0,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
+    },
+    {
+      "id": "12",
+      "type": "product",
+      "itemId": null,
+      "productId": "5",
+      "available": 40,
+      "reserved": 10,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
+    },
+    {
+      "id": "13",
+      "type": "product",
+      "itemId": null,
+      "productId": "6",
+      "available": 25,
+      "reserved": 0,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
+    },
+    {
+      "id": "14",
+      "type": "product",
+      "itemId": null,
+      "productId": "7",
+      "available": 8,
+      "reserved": 0,
+      "inUse": 0,
+      "warehouse": "Finished Goods Warehouse"
     }
   ],
   "orders": [
     {
       "id": "1",
       "clientId": "1",
-      "date": "2026-05-10",
-      "status": "delivered",
-      "totalPrice": 33200,
+      "orderDate": "2026-05-28",
+      "productionDate": "",
+      "deliveryDate": "",
+      "status": "new",
+      "type": "external",
+      "totalPrice": 43000,
       "products": [
         {
           "productId": "2",
-          "quantity": 12
+          "quantity": 10
         },
         {
           "productId": "6",
-          "quantity": 4
+          "quantity": 10
         }
       ]
     },
     {
       "id": "2",
       "clientId": "2",
-      "date": "2026-05-18",
-      "status": "in_progress",
-      "totalPrice": 27700,
+      "orderDate": "2026-05-29",
+      "productionDate": "2026-05-30",
+      "deliveryDate": "",
+      "status": "ready_for_shipping",
+      "type": "external",
+      "totalPrice": 39500,
       "products": [
         {
           "productId": "1",
-          "quantity": 8
+          "quantity": 10
         },
         {
-          "productId": "3",
-          "quantity": 6
+          "productId": "5",
+          "quantity": 10
         }
       ]
     },
     {
       "id": "3",
       "clientId": "3",
-      "date": "2026-05-27",
-      "status": "pending",
-      "totalPrice": 44000,
+      "orderDate": "2026-05-30",
+      "productionDate": "",
+      "deliveryDate": "",
+      "status": "new",
+      "type": "external",
+      "totalPrice": 33000,
       "products": [
         {
           "productId": "7",
-          "quantity": 20
+          "quantity": 15
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "clientId": "2",
+      "orderDate": "2026-06-01",
+      "productionDate": "",
+      "deliveryDate": "",
+      "status": "new",
+      "type": "external",
+      "totalPrice": 23800,
+      "products": [
+        {
+          "productId": "1",
+          "quantity": 5
+        },
+        {
+          "productId": "2",
+          "quantity": 3
+        },
+        {
+          "productId": "3",
+          "quantity": 2
+        },
+        {
+          "productId": "5",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "clientId": "2",
+      "orderDate": "2026-05-29",
+      "productionDate": "2026-05-30",
+      "deliveryDate": "",
+      "status": "produced",
+      "type": "internal",
+      "sourceOrderId": "2",
+      "totalPrice": 20000,
+      "productionApplied": true,
+      "products": [
+        {
+          "productId": "1",
+          "quantity": 10
         }
       ]
     }

@@ -2,11 +2,21 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme="dark"] *));
 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: var(--font-sans);
+    --color-bg: var(--color-bg);
+    --color-shade: var(--color-shade);
+    --color-highlight: var(--color-highlight);
+    --color-divider: var(--color-divider);
+    --color-text-primary: var(--color-text-primary);
+    --color-text-secondary: var(--color-text-secondary);
+    --color-text-tertiary: var(--color-text-tertiary);
+    --color-cloud-light: var(--color-cloud-light);
+    --color-cloud-mid: var(--color-cloud-mid);
+    --color-cloud-deep: var(--color-cloud-deep);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,166 +58,160 @@
     --radius-4xl: 28px;
 }
 
-/* ── Kairos neumorphic design tokens ─────────────────────────────────────── */
+/* ── Nimbus Design System — Core tokens ──────────────────────────────────── */
 :root {
-    /* Surface */
-    --k-bg: #f9f7f4;
+    /* Background / surface */
+    --color-bg: #f5f0eb;
+    --color-shade: #c9c2b8;
+    --color-highlight: #ffffff;
+    --color-divider: #d9d2c8;
 
-    /* Shadow sources — theme-aware, shadows auto-adapt via these two vars */
-    --k-shade:     #d6cfc7;
-    --k-highlight: #ffffff;
+    /* Text colors */
+    --color-text-primary: #31344b;
+    --color-text-secondary: #6b6f8e;
+    --color-text-tertiary: #9a9db4;
+
+    /* Brand accent — cloud-blue */
+    --color-cloud-light: #cfe8f5;
+    --color-cloud-mid: #a5d3ec;
+    --color-cloud-deep: #5fa8d3;
 
     /* Neumorphic shadow primitives */
-    --k-shadow-raised:    -6px -6px 12px var(--k-highlight),  6px  6px 12px var(--k-shade);
-    --k-shadow-raised-sm: -4px -4px  8px var(--k-highlight),  4px  4px  8px var(--k-shade);
-    --k-shadow-raised-xs: -2px -2px  4px var(--k-highlight),  2px  2px  4px var(--k-shade);
-    --k-shadow-lifted:    -8px -8px 16px var(--k-highlight),  8px  8px 16px var(--k-shade);
-    --k-shadow-lifted-sm: -6px -6px 12px var(--k-highlight),  6px  6px 12px var(--k-shade);
-    --k-shadow-inset:     inset -4px -4px  8px var(--k-highlight), inset  4px  4px  8px var(--k-shade);
-    --k-shadow-inset-sm:  inset -3px -3px  6px var(--k-highlight), inset  3px  3px  6px var(--k-shade);
+    --shadow-raised:     -6px -6px 12px var(--color-highlight),  6px  6px 12px var(--color-shade);
+    --shadow-raised-sm:  -4px -4px  8px var(--color-highlight),  4px  4px  8px var(--color-shade);
+    --shadow-raised-xs:  -2px -2px  4px var(--color-highlight),  2px  2px  4px var(--color-shade);
+    --shadow-lifted:     -8px -8px 16px var(--color-highlight),  8px  8px 16px var(--color-shade);
+    --shadow-lifted-sm:  -6px -6px 12px var(--color-highlight),  6px  6px 12px var(--color-shade);
+    --shadow-inset:      inset -4px -4px  8px var(--color-highlight), inset  4px  4px  8px var(--color-shade);
+    --shadow-inset-sm:   inset -3px -3px  6px var(--color-highlight), inset  3px  3px  6px var(--color-shade);
+    --shadow-inset-xs:   inset -2px -2px  4px var(--color-highlight), inset  2px  2px  4px var(--color-shade);
 
-    /* Text */
-    --k-text-primary:   #31344b;
-    --k-text-secondary: #6b6f8e;
-    --k-text-tertiary:  #9a9db4;
+    /* Extended semantic palette */
+    --color-amber-fg: #b87333;  --color-amber-bg: #f0d9b8;
+    --color-red-fg: #b04545;    --color-red-bg: #f0c8c8;
+    --color-purple-fg: #7a5fb3; --color-purple-bg: #d8cfeb;
+    --color-orange-fg: #c4763a; --color-orange-bg: #f2d5b8;
+    --color-cyan-fg: #4a8fa8;   --color-cyan-bg: #c8e0e8;
+    --color-green-fg: #5a8a4a;  --color-green-bg: #d2e2c0;
+    --color-grey-fg: #6b6f7e;   --color-grey-bg: #dcdbd4;
+    --color-yellow-fg: #a38a2a; --color-yellow-bg: #ece1b8;
 
-    /* Brand — cloud-blue accent */
-    --k-cloud-light: #cfe8f5;
-    --k-cloud-mid:   #a5d3ec;
-    --k-cloud-deep:  #5fa8d3;
-
-    /* Divider */
-    --k-divider: #d9d2c8;
-
-    /* Semantic palette */
-    --k-amber-fg:  #b87333;  --k-amber-bg:  #f0d9b8;
-    --k-red-fg:    #b04545;  --k-red-bg:    #f0c8c8;
-    --k-purple-fg: #7a5fb3;  --k-purple-bg: #d8cfeb;
-    --k-orange-fg: #c4763a;  --k-orange-bg: #f2d5b8;
-    --k-cyan-fg:   #4a8fa8;  --k-cyan-bg:   #c8e0e8;
-    --k-green-fg:  #5a8a4a;  --k-green-bg:  #d2e2c0;
-    --k-grey-fg:   #6b6f7e;  --k-grey-bg:   #dcdbd4;
-    --k-yellow-fg: #a38a2a;  --k-yellow-bg: #ece1b8;
-
-    /* Capacity bar pastels — these never change between themes */
-    --k-capacity-under: #FFB38E;
-    --k-capacity-exact: #C7EABB;
-    --k-capacity-over:  #BFECFF;
+    /* Capacity bar pastels — unchanged between themes */
+    --color-capacity-under: #ffb38e;
+    --color-capacity-exact: #c7eabb;
+    --color-capacity-over: #bfecff;
 
     /* Ambient background (none in light mode) */
-    --k-bg-ambient: none;
+    --bg-ambient: none;
+
+    /* Legacy aliases — prefer --color-* in new code */
+    --k-bg: var(--color-bg);
+    --k-shade: var(--color-shade);
+    --k-highlight: var(--color-highlight);
+    --k-divider: var(--color-divider);
+    --k-text-primary: var(--color-text-primary);
+    --k-text-secondary: var(--color-text-secondary);
+    --k-text-tertiary: var(--color-text-tertiary);
+    --k-cloud-light: var(--color-cloud-light);
+    --k-cloud-mid: var(--color-cloud-mid);
+    --k-cloud-deep: var(--color-cloud-deep);
+    --k-shadow-raised: var(--shadow-raised);
+    --k-shadow-raised-sm: var(--shadow-raised-sm);
+    --k-shadow-raised-xs: var(--shadow-raised-xs);
+    --k-shadow-lifted: var(--shadow-lifted);
+    --k-shadow-lifted-sm: var(--shadow-lifted-sm);
+    --k-shadow-inset: var(--shadow-inset);
+    --k-shadow-inset-sm: var(--shadow-inset-sm);
+    --k-amber-fg: var(--color-amber-fg);  --k-amber-bg: var(--color-amber-bg);
+    --k-red-fg: var(--color-red-fg);      --k-red-bg: var(--color-red-bg);
+    --k-purple-fg: var(--color-purple-fg); --k-purple-bg: var(--color-purple-bg);
+    --k-orange-fg: var(--color-orange-fg); --k-orange-bg: var(--color-orange-bg);
+    --k-cyan-fg: var(--color-cyan-fg);    --k-cyan-bg: var(--color-cyan-bg);
+    --k-green-fg: var(--color-green-fg);    --k-green-bg: var(--color-green-bg);
+    --k-grey-fg: var(--color-grey-fg);      --k-grey-bg: var(--color-grey-bg);
+    --k-yellow-fg: var(--color-yellow-fg); --k-yellow-bg: var(--color-yellow-bg);
+    --k-capacity-under: var(--color-capacity-under);
+    --k-capacity-exact: var(--color-capacity-exact);
+    --k-capacity-over: var(--color-capacity-over);
+    --k-bg-ambient: var(--bg-ambient);
 }
 
-.dark {
-    /* Surface */
-    --k-bg: #1a1626;
+[data-theme="dark"] {
+    /* Background / surface */
+    --color-bg: #1a1626;
+    --color-shade: #0f0c18;
+    --color-highlight: #2a2438;
+    --color-divider: #2f2940;
 
-    /* Shadow sources — slightly lighter/darker than base to preserve neumorphic depth */
-    --k-shade:     #0f0c18;
-    --k-highlight: #2a2438;
+    /* Text colors */
+    --color-text-primary: #e8e4f0;
+    --color-text-secondary: #a8a2bc;
+    --color-text-tertiary: #6c6580;
 
-    /* Shadows auto-adapt — no overrides needed */
+    /* Brand accent — brighter to glow against dark */
+    --color-cloud-light: #7ac4e8;
+    --color-cloud-mid: #5fa8d3;
+    --color-cloud-deep: #a5d8f0;
 
-    /* Text */
-    --k-text-primary:   #e8e4f0;
-    --k-text-secondary: #a8a2bc;
-    --k-text-tertiary:  #6c6580;
-
-    /* Brand — brighter to glow against dark surface */
-    --k-cloud-light: #7ac4e8;
-    --k-cloud-mid:   #5fa8d3;
-    --k-cloud-deep:  #a5d8f0;
-
-    /* Divider */
-    --k-divider: #2f2940;
-
-    /* Semantic palette — more saturated for dark backgrounds */
-    --k-amber-fg:  #f5a04f;  --k-amber-bg:  #3a2818;
-    --k-red-fg:    #e87878;  --k-red-bg:    #3a1f1f;
-    --k-purple-fg: #b794f6;  --k-purple-bg: #2e2348;
-    --k-orange-fg: #f59e4f;  --k-orange-bg: #3a2614;
-    --k-cyan-fg:   #7ac4e0;  --k-cyan-bg:   #1a2c32;
-    --k-green-fg:  #9bcf85;  --k-green-bg:  #1f2e1a;
-    --k-grey-fg:   #9d9db4;  --k-grey-bg:   #28253a;
-    --k-yellow-fg: #f5d76e;  --k-yellow-bg: #352c14;
-
-    /* Capacity pastels unchanged */
+    /* Semantic palette — tuned for dark inset chips */
+    --color-amber-fg: #f5a04f;  --color-amber-bg: #3a2818;
+    --color-red-fg: #e87878;      --color-red-bg: #3a1f1f;
+    --color-purple-fg: #b794f6;   --color-purple-bg: #2e2348;
+    --color-orange-fg: #f59e4f;   --color-orange-bg: #3a2614;
+    --color-cyan-fg: #7ac4e0;     --color-cyan-bg: #1a2c32;
+    --color-green-fg: #9bcf85;      --color-green-bg: #1f2e1a;
+    --color-grey-fg: #9d9db4;       --color-grey-bg: #28253a;
+    --color-yellow-fg: #f5d76e;     --color-yellow-bg: #352c14;
 
     /* Cosmic ambient gradient */
-    --k-bg-ambient:
+    --bg-ambient:
         radial-gradient(ellipse at 20% 10%, rgba(139, 92, 246, 0.12), transparent 50%),
         radial-gradient(ellipse at 80% 90%, rgba(245, 158, 79, 0.08), transparent 50%),
         radial-gradient(ellipse at 60% 50%, rgba(245, 215, 110, 0.05), transparent 60%);
 }
 
-/* ── Shadcn theme tokens — aligned to Kairos warm palette ────────────────── */
+/* ── Shadcn theme tokens — aligned to Nimbus warm palette ────────────────── */
 :root {
-    --background: #f9f7f4;
-    --foreground: #31344b;
-    --card: #f9f7f4;
-    --card-foreground: #31344b;
-    --popover: #f9f7f4;
-    --popover-foreground: #31344b;
-    --primary: #5fa8d3;
-    --primary-foreground: #f5f0eb;
+    --background: var(--color-bg);
+    --foreground: var(--color-text-primary);
+    --card: var(--color-bg);
+    --card-foreground: var(--color-text-primary);
+    --popover: var(--color-bg);
+    --popover-foreground: var(--color-text-primary);
+    --primary: var(--color-cloud-deep);
+    --primary-foreground: var(--color-bg);
     --secondary: #e8e2db;
-    --secondary-foreground: #31344b;
+    --secondary-foreground: var(--color-text-primary);
     --muted: #e8e2db;
-    --muted-foreground: #6b6f8e;
-    --accent: #cfe8f5;
-    --accent-foreground: #31344b;
-    --destructive: #b04545;
-    --border: #d9d2c8;
-    --input: #d9d2c8;
-    --ring: #5fa8d3;
-    --chart-1: #cfe8f5;
-    --chart-2: #a5d3ec;
-    --chart-3: #5fa8d3;
-    --chart-4: #4a8fa8;
-    --chart-5: #31344b;
+    --muted-foreground: var(--color-text-secondary);
+    --accent: var(--color-cloud-light);
+    --accent-foreground: var(--color-text-primary);
+    --destructive: var(--color-red-fg);
+    --border: var(--color-divider);
+    --input: var(--color-divider);
+    --ring: var(--color-cloud-deep);
+    --chart-1: var(--color-cloud-light);
+    --chart-2: var(--color-cloud-mid);
+    --chart-3: var(--color-cloud-deep);
+    --chart-4: var(--color-cyan-fg);
+    --chart-5: var(--color-text-primary);
     --radius: 1rem;
-    --sidebar: #f9f7f4;
-    --sidebar-foreground: #31344b;
-    --sidebar-primary: #5fa8d3;
-    --sidebar-primary-foreground: #f5f0eb;
+    --sidebar: var(--color-bg);
+    --sidebar-foreground: var(--color-text-primary);
+    --sidebar-primary: var(--color-cloud-deep);
+    --sidebar-primary-foreground: var(--color-bg);
     --sidebar-accent: #e8e2db;
-    --sidebar-accent-foreground: #31344b;
-    --sidebar-border: #d9d2c8;
-    --sidebar-ring: #5fa8d3;
+    --sidebar-accent-foreground: var(--color-text-primary);
+    --sidebar-border: var(--color-divider);
+    --sidebar-ring: var(--color-cloud-deep);
 }
 
-.dark {
-    --background: #1a1626;
-    --foreground: #e8e4f0;
-    --card: #1a1626;
-    --card-foreground: #e8e4f0;
-    --popover: #1a1626;
-    --popover-foreground: #e8e4f0;
-    --primary: #a5d8f0;
-    --primary-foreground: #1a1626;
+[data-theme="dark"] {
     --secondary: #241e32;
-    --secondary-foreground: #e8e4f0;
     --muted: #241e32;
-    --muted-foreground: #a8a2bc;
-    --accent: #7ac4e8;
-    --accent-foreground: #1a1626;
-    --destructive: #e87878;
-    --border: #2f2940;
-    --input: #2f2940;
-    --ring: #a5d8f0;
-    --chart-1: #7ac4e8;
-    --chart-2: #5fa8d3;
-    --chart-3: #a5d8f0;
-    --chart-4: #4a8fa8;
-    --chart-5: #e8e4f0;
-    --sidebar: #1a1626;
-    --sidebar-foreground: #e8e4f0;
-    --sidebar-primary: #a5d8f0;
-    --sidebar-primary-foreground: #1a1626;
+    --primary-foreground: var(--color-bg);
+    --accent-foreground: var(--color-bg);
     --sidebar-accent: #241e32;
-    --sidebar-accent-foreground: #e8e4f0;
-    --sidebar-border: #2f2940;
-    --sidebar-ring: #a5d8f0;
 }
 
 @layer base {
@@ -215,9 +219,11 @@
         @apply border-border outline-ring/50;
     }
     body {
-        background: var(--k-bg) var(--k-bg-ambient) fixed;
-        color: var(--k-text-primary);
+        background: var(--color-bg) var(--bg-ambient) fixed;
+        color: var(--color-text-primary);
+        font-family: var(--font-sans);
         transition: background 0.4s ease, color 0.4s ease;
+        -webkit-font-smoothing: antialiased;
     }
     button:not(:disabled), [role="button"]:not(:disabled) {
         cursor: pointer;
@@ -274,7 +280,7 @@
         radial-gradient(1px 1px at 5% 50%, rgba(255, 255, 255, 0.4), transparent);
 }
 
-.dark .starfield {
+[data-theme="dark"] .starfield {
     display: block;
 }
 
@@ -288,77 +294,77 @@
     border-left: none !important;
 }
 [data-sidebar="sidebar"] {
-    box-shadow: var(--k-shadow-raised-sm);
+    box-shadow: var(--shadow-raised-sm);
 }
 
 /* Nav menu buttons — three-state neumorphic */
 [data-slot="sidebar-menu-button"] {
-    color: var(--k-text-secondary);
+    color: var(--color-text-secondary);
     border-radius: var(--radius-md) !important;
     transition: box-shadow 0.2s ease, color 0.2s ease, transform 0.15s ease !important;
 }
 [data-slot="sidebar-menu-button"]:hover:not([data-active="true"]) {
-    background: var(--k-bg) !important;
-    box-shadow: var(--k-shadow-raised-sm) !important;
-    color: var(--k-cloud-deep) !important;
+    background: var(--color-bg) !important;
+    box-shadow: var(--shadow-raised-sm) !important;
+    color: var(--color-cloud-deep) !important;
     transform: translateY(-1px);
 }
 [data-slot="sidebar-menu-button"][data-active="true"] {
-    background: var(--k-bg) !important;
-    box-shadow: var(--k-shadow-inset-sm) !important;
-    color: var(--k-cloud-deep) !important;
+    background: var(--color-bg) !important;
+    box-shadow: var(--shadow-inset-sm) !important;
+    color: var(--color-cloud-deep) !important;
     font-weight: 600;
 }
 [data-slot="sidebar-menu-button"]:active {
-    box-shadow: var(--k-shadow-inset-sm) !important;
+    box-shadow: var(--shadow-inset-sm) !important;
     transform: translateY(0) !important;
-    color: var(--k-cloud-deep) !important;
+    color: var(--color-cloud-deep) !important;
 }
 
 /* Sidebar collapse trigger */
 [data-sidebar="trigger"] {
-    color: var(--k-text-secondary) !important;
+    color: var(--color-text-secondary) !important;
     border-radius: 50% !important;
     transition: box-shadow 0.2s ease, color 0.2s ease !important;
 }
 [data-sidebar="trigger"]:hover {
-    background: var(--k-bg) !important;
-    box-shadow: var(--k-shadow-raised-sm) !important;
-    color: var(--k-cloud-deep) !important;
+    background: var(--color-bg) !important;
+    box-shadow: var(--shadow-raised-sm) !important;
+    color: var(--color-cloud-deep) !important;
 }
 [data-sidebar="trigger"]:active {
-    box-shadow: var(--k-shadow-inset-sm) !important;
+    box-shadow: var(--shadow-inset-sm) !important;
 }
 
 /* ── Neumorphic utility classes ──────────────────────────────────────────── */
 @layer utilities {
     /* Interactive button — three-state: raised → lifted → inset */
     .neu-button {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-raised-sm);
-        color: var(--k-text-primary);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-raised-sm);
+        color: var(--color-text-primary);
         border: none;
         outline: none;
         border-radius: var(--radius-md);
         transition: box-shadow 0.2s ease, transform 0.15s ease, color 0.2s ease;
     }
     .neu-button:hover {
-        box-shadow: var(--k-shadow-lifted-sm);
+        box-shadow: var(--shadow-lifted-sm);
         transform: translateY(-1px);
-        color: var(--k-cloud-deep);
+        color: var(--color-cloud-deep);
     }
     .neu-button:active,
     .neu-button[data-active="true"] {
-        box-shadow: var(--k-shadow-inset-sm);
+        box-shadow: var(--shadow-inset-sm);
         transform: translateY(0);
-        color: var(--k-cloud-deep);
+        color: var(--color-cloud-deep);
     }
 
     /* Circular icon button */
     .neu-button-icon {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-raised-sm);
-        color: var(--k-text-primary);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-raised-sm);
+        color: var(--color-text-primary);
         border: none;
         outline: none;
         border-radius: 50%;
@@ -371,54 +377,54 @@
         transition: box-shadow 0.2s ease, transform 0.15s ease, color 0.2s ease;
     }
     .neu-button-icon:hover {
-        box-shadow: var(--k-shadow-lifted-sm);
+        box-shadow: var(--shadow-lifted-sm);
         transform: translateY(-1px);
-        color: var(--k-cloud-deep);
+        color: var(--color-cloud-deep);
     }
     .neu-button-icon:active,
     .neu-button-icon[data-active="true"] {
-        box-shadow: var(--k-shadow-inset-sm);
+        box-shadow: var(--shadow-inset-sm);
         transform: translateY(0);
-        color: var(--k-cloud-deep);
+        color: var(--color-cloud-deep);
     }
 
     /* Input — always inset, cloud-blue focus ring */
     .neu-input {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-inset-sm);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-inset-sm);
         border: none;
         outline: none;
         border-radius: 9999px;
-        color: var(--k-text-primary);
+        color: var(--color-text-primary);
         font-family: inherit;
         transition: box-shadow 0.2s ease;
     }
     .neu-input:focus {
-        box-shadow: var(--k-shadow-inset-sm), 0 0 0 2px var(--k-cloud-light);
+        box-shadow: var(--shadow-inset-sm), 0 0 0 2px var(--color-cloud-light);
     }
     .neu-input::placeholder {
-        color: var(--k-text-tertiary);
+        color: var(--color-text-tertiary);
     }
 
     /* Card surfaces */
     .neu-card {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-raised);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-raised);
         border: none;
     }
     .neu-card-sm {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-raised-sm);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-raised-sm);
         border: none;
     }
     .neu-card-inset {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-inset);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-inset);
         border: none;
     }
     .neu-card-inset-sm {
-        background: var(--k-bg);
-        box-shadow: var(--k-shadow-inset-sm);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-inset-sm);
         border: none;
     }
 }
