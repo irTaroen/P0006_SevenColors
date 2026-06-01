@@ -330,7 +330,7 @@ export default function ProductsPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-5">
       <OverviewPageHeader
         icon={PackageIcon}
         title="Products"

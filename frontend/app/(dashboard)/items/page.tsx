@@ -115,7 +115,7 @@ export default function ItemsPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-5">
       <OverviewPageHeader
         icon={BoxIcon}
         title="Items"

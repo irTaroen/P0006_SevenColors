@@ -83,7 +83,7 @@ export default function ClientsPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-5">
       <OverviewPageHeader
         icon={BuildingIcon}
         title="Clients"
