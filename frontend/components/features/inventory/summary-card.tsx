@@ -31,6 +31,7 @@ export function SummaryCard({
   suffix,
   colorKey,
   sublabel,
+  trend,
 }: {
   Icon: LucideIcon
   label: string
@@ -38,6 +39,7 @@ export function SummaryCard({
   suffix?: string
   colorKey: SemanticColorKey
   sublabel?: string
+  trend?: number | null
 }) {
   return (
     <div
@@ -70,6 +72,21 @@ export function SummaryCard({
           style={{ color: "var(--color-text-secondary)" }}
         >
           {label}
+          {trend != null && (
+            <span
+              className="ml-2 font-semibold"
+              style={{
+                color:
+                  trend > 0
+                    ? "var(--color-green-fg)"
+                    : trend < 0
+                      ? "var(--color-red-fg)"
+                      : "var(--color-text-tertiary)",
+              }}
+            >
+              {trend > 0 ? "↗" : trend < 0 ? "↘" : "→"} {Math.abs(trend)}%
+            </span>
+          )}
         </div>
         <div
           className="min-h-[13px] text-[10px] leading-snug tabular-nums"

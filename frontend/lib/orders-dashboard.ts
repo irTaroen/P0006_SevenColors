@@ -46,6 +46,7 @@ export type OrderView = {
   clientId: string
   clientName: string
   orderDate: string
+  productionDate: string
   deliveryDate: string
   status: string
   displayStatus: string
@@ -67,6 +68,7 @@ export type OrderSortColumn =
   | "order"
   | "client"
   | "placed"
+  | "production"
   | "delivery"
   | "items"
   | "total"
@@ -195,6 +197,7 @@ export function buildOrderView(
     clientId: order.clientId,
     clientName: client?.name ?? order.clientId ?? "—",
     orderDate: order.orderDate,
+    productionDate: order.productionDate,
     deliveryDate: order.deliveryDate,
     status: normalizedStatus,
     displayStatus,
@@ -298,6 +301,8 @@ function sortKey(order: OrderView, column: OrderSortColumn): string | number {
       return order.clientName.toLowerCase()
     case "placed":
       return order.orderDate || ""
+    case "production":
+      return order.productionDate || ""
     case "delivery":
       return order.deliveryDate || ""
     case "items":

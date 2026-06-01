@@ -14,9 +14,11 @@ export default function DashboardLayout({
       <TooltipProvider>
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset>
+          <SidebarInset className="min-h-0 overflow-hidden">
             <SiteHeader />
-            <main className="flex flex-1 flex-col gap-4 p-4">{children}</main>
+            <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
+              {children}
+            </main>
           </SidebarInset>
         </SidebarProvider>
       </TooltipProvider>

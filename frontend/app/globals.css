@@ -104,6 +104,7 @@
 
     /* Ambient background (none in light mode) */
     --bg-ambient: none;
+    --bg-ambient-opacity: 0;
 
     /* Legacy aliases — prefer --color-* in new code */
     --k-bg: var(--color-bg);
@@ -171,6 +172,7 @@
         radial-gradient(ellipse at 20% 10%, rgba(139, 92, 246, 0.12), transparent 50%),
         radial-gradient(ellipse at 80% 90%, rgba(245, 158, 79, 0.08), transparent 50%),
         radial-gradient(ellipse at 60% 50%, rgba(245, 215, 110, 0.05), transparent 60%);
+    --bg-ambient-opacity: 1;
 }
 
 /* ── Shadcn theme tokens — aligned to Nimbus warm palette ────────────────── */
@@ -222,11 +224,25 @@
         @apply border-border outline-ring/50;
     }
     body {
-        background: var(--color-bg) var(--bg-ambient) fixed;
+        position: relative;
+        background-color: var(--color-bg);
         color: var(--color-text-primary);
         font-family: var(--font-sans);
-        transition: background 0.4s ease, color 0.4s ease;
+        transition:
+            background-color 700ms cubic-bezier(0.22, 1, 0.36, 1),
+            color 700ms cubic-bezier(0.22, 1, 0.36, 1);
         -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        background-image: var(--bg-ambient);
+        opacity: var(--bg-ambient-opacity);
+        transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity;
     }
     button:not(:disabled), [role="button"]:not(:disabled) {
         cursor: pointer;
@@ -275,11 +291,10 @@
 
 /* ── Starfield — dark mode only, CSS-controlled ────────────────────────── */
 .starfield {
-    display: none;
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
     background-image:
         radial-gradient(1px 1px at 20% 30%, rgba(245, 215, 110, 0.5), transparent),
         radial-gradient(1px 1px at 70% 60%, rgba(183, 148, 246, 0.4), transparent),
@@ -291,10 +306,13 @@
         radial-gradient(1px 1px at 30% 90%, rgba(122, 196, 232, 0.3), transparent),
         radial-gradient(2px 2px at 75% 45%, rgba(245, 215, 110, 0.4), transparent),
         radial-gradient(1px 1px at 5% 50%, rgba(255, 255, 255, 0.4), transparent);
+    opacity: 0;
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity;
 }
 
 [data-theme="dark"] .starfield {
-    display: block;
+    opacity: 1;
 }
 
 /* ── Sidebar Kairos overrides ────────────────────────────────────────────── */

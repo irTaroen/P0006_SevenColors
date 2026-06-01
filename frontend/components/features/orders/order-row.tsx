@@ -15,10 +15,10 @@ import { StatusBadge } from "./status-badge"
 import { StockChip } from "./stock-chip"
 
 export const ORDER_ROW_TEMPLATE =
-  "20px minmax(0,1.3fr) minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) minmax(0,0.7fr) minmax(0,1fr) minmax(0,1.6fr) 72px"
+  "20px minmax(0,0.85fr) minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,0.7fr) minmax(0,1fr) minmax(0,1.6fr) 72px"
 
 export const ITEM_ROW_TEMPLATE =
-  "20px minmax(0,1.3fr) minmax(0,2.6fr) minmax(0,1fr) minmax(0,1fr) minmax(0,0.7fr) minmax(0,1fr) minmax(0,1.6fr) 72px"
+  ORDER_ROW_TEMPLATE
 
 export function OrderRow({
   order,
@@ -102,6 +102,13 @@ export function OrderRow({
           className="text-xs tabular-nums"
           style={{ color: "var(--color-text-secondary)" }}
         >
+          {formatOrderDisplayDate(order.productionDate)}
+        </div>
+
+        <div
+          className="text-xs tabular-nums"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
           {formatOrderDisplayDate(order.deliveryDate)}
         </div>
 
@@ -159,7 +166,7 @@ export function OrderRow({
       </div>
 
       {open && (
-        <div className="mb-1 ml-[38px] mr-2 mt-2 pb-2">
+        <div className="mb-1 mx-2 mt-2 pb-2">
           {order.lines.length === 0 ? (
             <p
               className="py-2 text-xs"
@@ -182,6 +189,9 @@ export function OrderRow({
                 }}
               >
                 <span />
+                <span />
+                <span />
+                <span />
                 <div
                   className="text-xs font-medium tabular-nums"
                   style={{ color: "var(--color-text-secondary)" }}
@@ -195,7 +205,7 @@ export function OrderRow({
                   {line.name}
                 </div>
                 <div
-                  className="text-xs tabular-nums"
+                  className="text-[13px] font-semibold tabular-nums"
                   style={{ color: "var(--color-text-primary)" }}
                 >
                   <span
@@ -205,18 +215,6 @@ export function OrderRow({
                     ×{" "}
                   </span>
                   {line.quantity}
-                </div>
-                <div
-                  className="text-xs tabular-nums"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  {formatOrderCurrency(line.unitPrice)}
-                </div>
-                <div
-                  className="text-xs tabular-nums"
-                  style={{ color: "var(--color-text-tertiary)" }}
-                >
-                  {line.stockAvailable}
                 </div>
                 <div
                   className="pr-3 text-right text-xs font-semibold tabular-nums"

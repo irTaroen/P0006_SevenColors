@@ -75,6 +75,13 @@ export function OrdersPanel({
             onSort={onSort}
           />
           <SortableHeader
+            label="Production"
+            columnKey="production"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={onSort}
+          />
+          <SortableHeader
             label="Delivery"
             columnKey="delivery"
             sortColumn={sortColumn}
@@ -129,6 +136,7 @@ export function OrdersPanel({
               placeholder="Search client…"
             />
           </div>
+          <span />
           <span />
           <span />
           <span />

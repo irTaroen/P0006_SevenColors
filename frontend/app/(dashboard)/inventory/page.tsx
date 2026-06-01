@@ -15,10 +15,8 @@ import { Input } from "@/components/ui/input"
 import { NumberInput } from "@/components/ui/number-input"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  createResource,
-  deleteResource,
   fetchResource,
-  updateResource,
+  createResource,
 } from "@/lib/api"
 import {
   buildBarItems,
@@ -27,6 +25,11 @@ import {
   getLowStockItems,
   splitByType,
 } from "@/lib/inventory-dashboard"
+import {
+  buildAdjustmentMovements,
+  computeInventoryFromMovements,
+  type InventoryMovement,
+} from "@/lib/inventory-ledger"
 import {
   buildInventoryRows,
   isVirtualInventoryId,
@@ -39,7 +42,9 @@ type InventoryRecord = Omit<InventoryEntry, "persisted">
 type Item = { id: string; name: string; unit: string; minimumInventory: number }
 type Product = { id: string; name: string; unit: string }
 
-type InventoryForm = Omit<InventoryRecord, "id">
+type InventoryForm = Omit<InventoryRecord, "id" | "type"> & {
+  type: "item" | "product"
+}
 
 const EMPTY_FORM: InventoryForm = {
   type: "item",
@@ -52,6 +57,9 @@ const EMPTY_FORM: InventoryForm = {
 }
 
 export default function InventoryPage() {
+  const [movementRecords, setMovementRecords] = React.useState<
+    InventoryMovement[]
+  >([])
   const [inventoryRecords, setInventoryRecords] = React.useState<
     InventoryRecord[]
   >([])
@@ -62,7 +70,7 @@ export default function InventoryPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null)
   const [form, setForm] = React.useState<InventoryForm>(EMPTY_FORM)
   const [isSaving, setIsSaving] = React.useState(false)
-  const syncToken = useResourceSync("inventory", "items", "products")
+  const syncToken = useResourceSync("inventory_movements", "items", "products")
 
   const data = React.useMemo(
     () => buildInventoryRows(items, products, inventoryRecords),
@@ -87,13 +95,15 @@ export default function InventoryPage() {
 
   React.useEffect(() => {
     Promise.all([
-      fetchResource<InventoryRecord>("inventory"),
+      fetchResource<InventoryMovement>("inventory_movements"),
       fetchResource<Item>("items"),
       fetchResource<Product>("products"),
     ])
-      .then(([inventory, itemList, productList]) => {
+      .then(([movements, itemList, productList]) => {
+        setMovementRecords(movements)
+        const derived = computeInventoryFromMovements(movements)
         setInventoryRecords(
-          inventory.map((entry) => ({
+          derived.map((entry) => ({
             ...entry,
             type: entry.type ?? (entry.productId ? "product" : "item"),
             itemId: entry.itemId ?? null,
@@ -164,46 +174,54 @@ export default function InventoryPage() {
         warehouse: form.warehouse,
       }
 
-      const existingRecord = inventoryRecords.find((entry) => {
-        if (form.type === "item") {
-          return entry.itemId === form.itemId && !entry.productId
-        }
-        return entry.productId === form.productId && !entry.itemId
+      const now = new Date().toISOString()
+      const current = inventoryRecords.find((entry) => {
+        const matchEntity =
+          form.type === "product"
+            ? entry.productId === payload.productId
+            : entry.itemId === payload.itemId
+        return matchEntity && entry.warehouse === payload.warehouse
+      }) ?? {
+        available: 0,
+        reserved: 0,
+        inUse: 0,
+      }
+
+      const moves = buildAdjustmentMovements({
+        movementRecords,
+        ts: now,
+        entityType: payload.type,
+        itemId: payload.type === "item" ? payload.itemId : null,
+        productId: payload.type === "product" ? payload.productId : null,
+        warehouse: payload.warehouse,
+        current,
+        desired: payload,
+        refType: "manual",
+        note: "Inventory adjustment",
       })
 
-      if (
-        editingId &&
-        !isVirtualInventoryId(editingId) &&
-        inventoryRecords.some((entry) => entry.id === editingId)
-      ) {
-        const updated = await updateResource<InventoryRecord>(
-          "inventory",
-          editingId,
-          payload
-        )
-        setInventoryRecords((prev) =>
-          prev.map((entry) =>
-            entry.id === editingId ? { ...entry, ...updated } : entry
+      if (moves.length > 0) {
+        const created = await Promise.all(
+          moves.map((m) =>
+            createResource<InventoryMovement>(
+              "inventory_movements",
+              m as unknown as Omit<InventoryMovement, "id">
+            )
           )
         )
-      } else if (existingRecord) {
-        const updated = await updateResource<InventoryRecord>(
-          "inventory",
-          existingRecord.id,
-          payload
+        const mergedMovements = [...movementRecords, ...created]
+        setMovementRecords(mergedMovements)
+        const derived = computeInventoryFromMovements(mergedMovements)
+        setInventoryRecords(
+          derived.map((entry) => ({
+            ...entry,
+            type: entry.type ?? (entry.productId ? "product" : "item"),
+            itemId: entry.itemId ?? null,
+            productId: entry.productId ?? null,
+          }))
         )
-        setInventoryRecords((prev) =>
-          prev.map((entry) =>
-            entry.id === existingRecord.id ? { ...entry, ...updated } : entry
-          )
-        )
-      } else {
-        const created = await createResource<InventoryRecord>(
-          "inventory",
-          payload
-        )
-        setInventoryRecords((prev) => [...prev, created])
       }
+
       setDialogOpen(false)
     } finally {
       setIsSaving(false)
@@ -297,6 +315,8 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      <InventoryLegend />
+
       <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
         <div className="animate-fade-up-d2">
           <CategoryTile
@@ -317,10 +337,6 @@ export default function InventoryPage() {
           />
         </div>
       </div>
-
-      <RestockPanel items={lowStockItems} />
-
-      <InventoryLegend />
 
       <ResourceFormDialog
         open={dialogOpen}

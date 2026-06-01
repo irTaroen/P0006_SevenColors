@@ -9,6 +9,7 @@ export type DbResource =
   | "items"
   | "products"
   | "inventory"
+  | "inventory_movements"
   | "orders"
 
 export function hashResource(value: unknown) {
