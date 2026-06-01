@@ -4,7 +4,7 @@ import * as React from "react"
 import { createColumnHelper } from "@tanstack/react-table"
 import { BuildingIcon } from "lucide-react"
 
-import { DashboardPageHeader } from "@/components/dashboard/page-header"
+import { OverviewPageHeader } from "@/components/dashboard/page-header"
 import { DataTable } from "@/components/data-table/data-table"
 import { FormField } from "@/components/data-table/form-field"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
@@ -84,7 +84,7 @@ export default function ClientsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <DashboardPageHeader
+      <OverviewPageHeader
         icon={BuildingIcon}
         title="Clients"
         description="Customer accounts. Use the edit icon or add button to manage records."

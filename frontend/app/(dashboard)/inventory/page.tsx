@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Box, Check, Clock, Layers, Warehouse } from "lucide-react"
+import { ArchiveIcon, Box, Check, Clock, Layers, Warehouse } from "lucide-react"
 
+import { OverviewPageHeader } from "@/components/dashboard/page-header"
 import {
   CategoryTile,
   InventoryLegend,
@@ -261,28 +262,11 @@ export default function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="animate-fade-up">
-        <h2
-          className="mb-1.5 text-[28px] font-bold tracking-[-0.6px]"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          Inventory{" "}
-          <span
-            className="italic"
-            style={{ color: "var(--color-cloud-deep)" }}
-          >
-            overview
-          </span>
-        </h2>
-        <p
-          className="max-w-2xl text-[13px] leading-relaxed"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          Raw materials and finished products at a glance. Click any row to edit
-          stock levels. Items at or below their minimum appear in the restock
-          panel below.
-        </p>
-      </div>
+      <OverviewPageHeader
+        icon={ArchiveIcon}
+        title="Inventory"
+        description="Raw materials and finished products at a glance. Click any row to edit stock levels. Items at or below their minimum appear in the restock panel below."
+      />
 
       <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
         <div className="animate-fade-up-d1">

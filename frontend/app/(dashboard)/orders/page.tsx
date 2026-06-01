@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, ShoppingCartIcon } from "lucide-react"
 
+import { OverviewPageHeader } from "@/components/dashboard/page-header"
 import { ConfirmDeleteDialog } from "@/components/data-table/confirm-delete-dialog"
 import {
   OrdersKpiCard,
@@ -197,10 +198,8 @@ export default function OrdersPage() {
 
   const toggleRow = (id: string) => {
     setOpenRows((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
+      // Only allow a single expanded order row at a time.
+      return prev.has(id) ? new Set() : new Set([id])
     })
   }
 
@@ -390,27 +389,11 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="animate-fade-up">
-        <h2
-          className="mb-1.5 text-[28px] font-bold tracking-[-0.6px]"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          Orders{" "}
-          <span
-            className="italic"
-            style={{ color: "var(--color-cloud-deep)" }}
-          >
-            overview
-          </span>
-        </h2>
-        <p
-          className="max-w-2xl text-[13px] leading-relaxed"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          Click an order to expand line items. Orders with stock shortages or
-          pending approval need manual attention.
-        </p>
-      </div>
+      <OverviewPageHeader
+        icon={ShoppingCartIcon}
+        title="Orders"
+        description="Click an order to expand line items. Orders with stock shortages or pending approval need manual attention."
+      />
 
       <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="animate-fade-up-d1">

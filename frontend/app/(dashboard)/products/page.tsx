@@ -4,7 +4,7 @@ import * as React from "react"
 import { createColumnHelper } from "@tanstack/react-table"
 import { PackageIcon } from "lucide-react"
 
-import { DashboardPageHeader } from "@/components/dashboard/page-header"
+import { OverviewPageHeader } from "@/components/dashboard/page-header"
 import { DataTable } from "@/components/data-table/data-table"
 import { ExpandedDetailColumn } from "@/components/data-table/expanded-detail-column"
 import { FormField } from "@/components/data-table/form-field"
@@ -56,11 +56,13 @@ const PRODUCTS_TABLE_COLGROUP = (
     <col style={{ width: "10%" }} />
     <col style={{ width: "16%" }} />
     <col />
-    <col style={{ width: "6.5rem" }} />
-    <col style={{ width: "6.5rem" }} />
-    <col className="w-[72px]" />
+    <col style={{ width: "7rem" }} />
+    <col style={{ width: "7rem" }} />
+    <col className="w-[88px]" />
   </colgroup>
 )
+
+const priceCellClassName = "block text-right tabular-nums pr-8"
 
 function buildProductExpandedCells(
   components: Component[],
@@ -288,13 +290,17 @@ export default function ProductsPage() {
       }),
       columnHelper.display({
         id: "totalCost",
-        header: () => <span className="block text-right">Total cost</span>,
+        header: () => (
+          <span className={`${priceCellClassName} text-muted-foreground`}>
+            Total cost
+          </span>
+        ),
         meta: {
           filterText: (row) =>
             formatPrice(computeProductTotalCost(row.components, items)),
         },
         cell: ({ row }) => (
-          <span className="block text-right text-muted-foreground tabular-nums">
+          <span className={`${priceCellClassName} text-muted-foreground`}>
             {formatPrice(
               computeProductTotalCost(row.original.components, items)
             )}
@@ -302,12 +308,14 @@ export default function ProductsPage() {
         ),
       }),
       columnHelper.accessor("sellPrice", {
-        header: () => <span className="block text-right">Sell price</span>,
+        header: () => (
+          <span className={`${priceCellClassName} font-medium`}>Sell price</span>
+        ),
         meta: {
           filterText: (row) => `${formatPrice(row.sellPrice)} ${row.sellPrice}`,
         },
         cell: ({ getValue }) => (
-          <span className="block text-right font-medium tabular-nums">
+          <span className={`${priceCellClassName} font-medium`}>
             {formatPrice(getValue())}
           </span>
         ),
@@ -323,7 +331,7 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <DashboardPageHeader
+      <OverviewPageHeader
         icon={PackageIcon}
         title="Products"
         description="Finished paint sold in barrels. Click a row to expand its recipe; use the edit icon to change details."
@@ -338,6 +346,7 @@ export default function ProductsPage() {
         onEdit={openEdit}
         addLabel="Add product"
         getRowLabel={(row) => row.name}
+        singleExpand
         colgroup={PRODUCTS_TABLE_COLGROUP}
         renderExpandedRowCells={renderExpandedRowCells}
       />

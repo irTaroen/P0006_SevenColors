@@ -61,6 +61,49 @@ function cloneMovement(entry: InventoryMovement): InventoryMovement {
   return { ...entry }
 }
 
+function createOrderWorkflowStore(db: Db) {
+  const store = {
+    data: {
+      orders: db.data.orders,
+      products: db.data.products,
+      inventory: db.data.inventory,
+      inventoryMovements: db.data.inventory_movements,
+    },
+    write: async () => {
+      db.data.orders = store.data.orders
+      db.data.inventory = store.data.inventory
+      db.data.inventory_movements = store.data.inventoryMovements
+      await db.write()
+    },
+  }
+
+  return store
+}
+
+function restoreOrderState(
+  db: Db,
+  orders: Order[],
+  inventory: InventoryEntry[],
+  movements: InventoryMovement[]
+) {
+  db.data.orders = orders
+  db.data.inventory = inventory
+  db.data.inventory_movements = movements
+}
+
+function removeLinkedOpenInternalOrders(orders: Order[], sourceOrderId: string) {
+  return orders.filter(
+    (order) =>
+      !(
+        order.type === "internal" &&
+        order.sourceOrderId === sourceOrderId &&
+        order.status !== "produced" &&
+        order.status !== "cancelled" &&
+        order.status !== "returned"
+      )
+  )
+}
+
 export function registerOrderRoutes(app: import("@tinyhttp/app").App, db: Db) {
   const service = new Service(db)
   const parseJson = json()
@@ -86,27 +129,12 @@ export function registerOrderRoutes(app: import("@tinyhttp/app").App, db: Db) {
     }
 
     try {
-      const store = {
-        data: {
-          orders: db.data.orders,
-          products: db.data.products,
-          inventory: db.data.inventory,
-          inventoryMovements: db.data.inventory_movements,
-        },
-        write: async () => {
-          db.data.orders = store.data.orders
-          db.data.inventory = store.data.inventory
-          db.data.inventory_movements = store.data.inventoryMovements
-          await db.write()
-        },
-      }
+      const store = createOrderWorkflowStore(db)
       await persistOrderWorkflow(store, created.id)
       const order = db.data.orders?.find((entry) => entry.id === created.id)
       res.status(201).json(order ?? created)
     } catch (error) {
-      db.data.orders = previousOrders
-      db.data.inventory = previousInventory
-      db.data.inventory_movements = previousMovements
+      restoreOrderState(db, previousOrders, previousInventory, previousMovements)
       await db.write()
       if (sendReservationError(res, error)) return
       throw error
@@ -146,27 +174,42 @@ export function registerOrderRoutes(app: import("@tinyhttp/app").App, db: Db) {
     }
 
     try {
-      const store = {
-        data: {
-          orders: db.data.orders,
-          products: db.data.products,
-          inventory: db.data.inventory,
-          inventoryMovements: db.data.inventory_movements,
-        },
-        write: async () => {
-          db.data.orders = store.data.orders
-          db.data.inventory = store.data.inventory
-          db.data.inventory_movements = store.data.inventoryMovements
-          await db.write()
-        },
-      }
+      const store = createOrderWorkflowStore(db)
       await persistOrderWorkflow(store, id)
       const order = db.data.orders?.find((entry) => entry.id === id)
       res.json(order ?? updated)
     } catch (error) {
-      db.data.orders = previousOrders
-      db.data.inventory = previousInventory
-      db.data.inventory_movements = previousMovements
+      restoreOrderState(db, previousOrders, previousInventory, previousMovements)
+      await db.write()
+      if (sendReservationError(res, error)) return
+      throw error
+    }
+  })
+
+  app.delete("/orders/:id", async (req, res) => {
+    const { id = "" } = req.params
+    const previous = db.data.orders?.find((order) => order.id === id)
+    if (!previous) {
+      res.status(404).json({ error: "Not Found" })
+      return
+    }
+
+    const previousOrders = (db.data.orders ?? []).map(cloneOrder)
+    const previousInventory = (db.data.inventory ?? []).map(cloneInventoryEntry)
+    const previousMovements = (db.data.inventory_movements ?? []).map(cloneMovement)
+
+    db.data.orders = (db.data.orders ?? []).filter((order) => order.id !== id)
+
+    if (previous.type !== "internal") {
+      db.data.orders = removeLinkedOpenInternalOrders(db.data.orders ?? [], id)
+    }
+
+    try {
+      const store = createOrderWorkflowStore(db)
+      await persistOrderWorkflow(store, id)
+      res.json(previous)
+    } catch (error) {
+      restoreOrderState(db, previousOrders, previousInventory, previousMovements)
       await db.write()
       if (sendReservationError(res, error)) return
       throw error

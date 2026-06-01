@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Layers, PackageOpen, Truck } from "lucide-react"
+import { Layers, LayoutDashboardIcon, PackageOpen, Truck } from "lucide-react"
 
+import { OverviewPageHeader } from "@/components/dashboard/page-header"
 import { SummaryCard } from "@/components/features/inventory"
 import { SankeyDiagram } from "@/components/features/flow"
 import { PeriodToggle } from "@/components/features/orders/period-toggle"
@@ -80,27 +81,36 @@ export default function Page() {
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex shrink-0 items-start justify-between gap-4">
-        <div className="animate-fade-up max-w-2xl">
-          <h2
-            className="mb-1.5 text-[28px] font-bold tracking-[-0.6px]"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            Order{" "}
-            <span
-              className="italic"
-              style={{ color: "var(--color-cloud-deep)" }}
+        <div className="animate-fade-up max-w-2xl pt-4 pl-4">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-start gap-3">
+              <LayoutDashboardIcon
+                className="mt-1 size-7 shrink-0"
+                style={{ color: "var(--color-cloud-deep)" }}
+                aria-hidden
+              />
+              <h2
+                className="min-w-0 text-[28px] font-bold tracking-[-0.6px]"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                Order{" "}
+                <span
+                  className="italic"
+                  style={{ color: "var(--color-cloud-deep)" }}
+                >
+                  flow
+                </span>
+              </h2>
+            </div>
+            <p
+              className="hidden text-[13px] leading-relaxed sm:block"
+              style={{ color: "var(--color-text-secondary)" }}
             >
-              flow
-            </span>
-          </h2>
-          <p
-            className="hidden text-[13px] leading-relaxed sm:block"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Paint production and sales flow — how demand splits into ship-from-stock vs
-            make-to-order, and converges on shipments. All values in product units for{" "}
-            {flow.periodLabel}.
-          </p>
+              Paint production and sales flow — how demand splits into ship-from-stock vs
+              make-to-order, and converges on shipments. All values in product units for{" "}
+              {flow.periodLabel}.
+            </p>
+          </div>
         </div>
         <div className="animate-fade-up shrink-0">
           <PeriodToggle offset={periodOffset} onChange={setPeriodOffset} />

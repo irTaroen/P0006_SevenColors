@@ -45,6 +45,8 @@ interface DataTableProps<T extends { id: string }> {
   addLabel?: string
   getRowLabel?: (row: T) => string
   canDelete?: (row: T) => boolean
+  /** If true, opening one row collapses any other expanded row. */
+  singleExpand?: boolean
   /** One cell per data column, aligned with the table header row. */
   renderExpandedRowCells?: (row: T) => (React.ReactNode | null | undefined)[]
   colgroup?: React.ReactNode
@@ -60,6 +62,7 @@ export function DataTable<T extends { id: string }>({
   addLabel = "Add row",
   getRowLabel,
   canDelete,
+  singleExpand = false,
   renderExpandedRowCells,
   colgroup,
 }: DataTableProps<T>) {
@@ -79,12 +82,13 @@ export function DataTable<T extends { id: string }>({
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
+      if (singleExpand) {
+        return prev.has(id) ? new Set() : new Set([id])
       }
+
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }

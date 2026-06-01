@@ -20,6 +20,13 @@
       "email": "hello@honda.com",
       "phone": "+66 81 234 5678",
       "address": "199/1 Eastern Seaboard Industrial Estate, Pluak Daeng, Rayong 21140"
+    },
+    {
+      "name": "PP Auto Parts",
+      "email": "info@ppauto.com",
+      "phone": "+66 84035348",
+      "address": "38/9 Na Mai La Lum Gew",
+      "id": "ar_QaS0GMfA"
     }
   ],
   "items": [
@@ -90,10 +97,10 @@
   "products": [
     {
       "id": "1",
-      "name": "Red Paint",
+      "name": "Red Drum",
       "unit": "barrels",
       "clientId": null,
-      "sellPrice": 2000,
+      "sellPrice": 1800,
       "components": [
         {
           "itemId": "1",
@@ -132,7 +139,7 @@
     },
     {
       "id": "3",
-      "name": "Green Paint",
+      "name": "Green Drum",
       "unit": "barrels",
       "clientId": null,
       "sellPrice": 1950,
@@ -242,6 +249,27 @@
           "amount": 160
         }
       ]
+    },
+    {
+      "name": "Green Drum PP Autoparts",
+      "unit": "barrels",
+      "clientId": "ar_QaS0GMfA",
+      "sellPrice": 1000,
+      "components": [
+        {
+          "itemId": "3",
+          "amount": 30
+        },
+        {
+          "itemId": "6",
+          "amount": 10
+        },
+        {
+          "itemId": "7",
+          "amount": 20
+        }
+      ],
+      "id": "FU2xZuBQGhU"
     }
   ],
   "inventory": [
@@ -320,8 +348,8 @@
       "type": "product",
       "itemId": null,
       "productId": "1",
-      "available": 0,
-      "reserved": 10,
+      "available": 5,
+      "reserved": 5,
       "inUse": 0,
       "warehouse": "Finished Goods Warehouse"
     },
@@ -330,8 +358,8 @@
       "type": "product",
       "itemId": null,
       "productId": "2",
-      "available": 40,
-      "reserved": 10,
+      "available": 50,
+      "reserved": 0,
       "inUse": 0,
       "warehouse": "Finished Goods Warehouse"
     },
@@ -360,8 +388,8 @@
       "type": "product",
       "itemId": null,
       "productId": "5",
-      "available": 40,
-      "reserved": 10,
+      "available": 50,
+      "reserved": 0,
       "inUse": 0,
       "warehouse": "Finished Goods Warehouse"
     },
@@ -370,8 +398,8 @@
       "type": "product",
       "itemId": null,
       "productId": "6",
-      "available": 15,
-      "reserved": 10,
+      "available": 25,
+      "reserved": 0,
       "inUse": 0,
       "warehouse": "Finished Goods Warehouse"
     },
@@ -590,111 +618,152 @@
       "qty": 30,
       "refType": "manual",
       "note": "Opening balance (available)"
+    },
+    {
+      "ts": "2026-06-01T07:16:18.151Z",
+      "entityType": "item",
+      "itemId": "1",
+      "productId": null,
+      "warehouse": "Main Warehouse",
+      "kind": "adjust",
+      "qty": 220,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "IKz9VcGM7x0"
+    },
+    {
+      "ts": "2026-06-01T07:16:32.176Z",
+      "entityType": "item",
+      "itemId": "6",
+      "productId": null,
+      "warehouse": "Main Warehouse",
+      "kind": "issue",
+      "qty": 120,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "H4a5MSn-9KI"
+    },
+    {
+      "ts": "2026-06-01T07:19:59.131Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "2",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "adjust",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "FBy5UL0hnsE"
+    },
+    {
+      "ts": "2026-06-01T07:19:59.131Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "2",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "unreserve",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "WgfnmxY_wdo"
+    },
+    {
+      "ts": "2026-06-01T07:20:03.194Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "5",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "adjust",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "iJze-6Xxfg0"
+    },
+    {
+      "ts": "2026-06-01T07:20:03.194Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "5",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "unreserve",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "wNUSQqj7Uao"
+    },
+    {
+      "ts": "2026-06-01T07:20:12.757Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "1",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "adjust",
+      "qty": 60,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "UwMN5j6p0BI"
+    },
+    {
+      "ts": "2026-06-01T07:20:16.748Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "1",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "unreserve",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "4BPLM4yVMZc"
+    },
+    {
+      "ts": "2026-06-01T07:20:23.291Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "1",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "issue",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "Njxs5DHC-v0"
+    },
+    {
+      "ts": "2026-06-01T07:20:32.624Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "6",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "adjust",
+      "qty": 5,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "Uf8i68bQzuA"
+    },
+    {
+      "ts": "2026-06-01T07:20:32.624Z",
+      "entityType": "product",
+      "itemId": null,
+      "productId": "6",
+      "warehouse": "Finished Goods Warehouse",
+      "kind": "unreserve",
+      "qty": 10,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "56uFFlCrkh8"
+    },
+    {
+      "ts": "2026-06-01T07:33:12.238Z",
+      "entityType": "item",
+      "itemId": "1",
+      "productId": null,
+      "warehouse": "Main Warehouse",
+      "kind": "issue",
+      "qty": 400,
+      "refType": "manual",
+      "note": "Inventory adjustment",
+      "id": "Zx24s5Y5uO4"
     }
   ],
-  "orders": [
-    {
-      "id": "1",
-      "clientId": "1",
-      "orderDate": "2026-06-01",
-      "productionDate": "2026-06-02",
-      "deliveryDate": "2026-06-06",
-      "status": "ready_for_shipping",
-      "type": "external",
-      "totalPrice": 43000,
-      "products": [
-        {
-          "productId": "2",
-          "quantity": 10
-        },
-        {
-          "productId": "6",
-          "quantity": 10
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "clientId": "2",
-      "orderDate": "2026-06-02",
-      "productionDate": "2026-05-30",
-      "deliveryDate": "",
-      "status": "ready_for_shipping",
-      "type": "external",
-      "totalPrice": 39500,
-      "products": [
-        {
-          "productId": "1",
-          "quantity": 10
-        },
-        {
-          "productId": "5",
-          "quantity": 10
-        }
-      ]
-    },
-    {
-      "id": "3",
-      "clientId": "3",
-      "orderDate": "2026-06-02",
-      "productionDate": "",
-      "deliveryDate": "",
-      "status": "new",
-      "type": "external",
-      "totalPrice": 33000,
-      "products": [
-        {
-          "productId": "7",
-          "quantity": 15
-        }
-      ]
-    },
-    {
-      "id": "5",
-      "clientId": "2",
-      "orderDate": "2026-06-01",
-      "productionDate": "",
-      "deliveryDate": "",
-      "status": "new",
-      "type": "external",
-      "totalPrice": 23800,
-      "products": [
-        {
-          "productId": "1",
-          "quantity": 5
-        },
-        {
-          "productId": "2",
-          "quantity": 3
-        },
-        {
-          "productId": "3",
-          "quantity": 2
-        },
-        {
-          "productId": "5",
-          "quantity": 2
-        }
-      ]
-    },
-    {
-      "id": "6",
-      "clientId": "2",
-      "orderDate": "2026-06-04",
-      "productionDate": "2026-05-30",
-      "deliveryDate": "",
-      "status": "produced",
-      "type": "internal",
-      "sourceOrderId": "2",
-      "totalPrice": 20000,
-      "productionApplied": true,
-      "products": [
-        {
-          "productId": "1",
-          "quantity": 10
-        }
-      ]
-    }
-  ],
+  "orders": [],
   "$schema": "./node_modules/json-server/schema.json"
 }
