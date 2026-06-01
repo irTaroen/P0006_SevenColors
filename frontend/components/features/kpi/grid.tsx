@@ -14,13 +14,38 @@ type Props = {
 }
 
 const KPI_CARDS = [
-  { checkKey: "totalOrders",    title: "Total orders",      zeroText: "No orders",            dataKey: "totalOrders"    as const },
-  { checkKey: "totalProducing", title: "In production",     zeroText: "Nothing in production", dataKey: "totalProducing" as const },
-  { checkKey: "totalInventory", title: "In stock",          zeroText: "Nothing in stock",      dataKey: "totalInventory" as const },
-  { checkKey: "totalSpill",     title: "Unused items",      zeroText: "No unused items",       dataKey: "totalSpill"     as const },
+  {
+    checkKey: "totalOrders",
+    title: "Total orders",
+    zeroText: "No orders",
+    dataKey: "totalOrders" as const,
+  },
+  {
+    checkKey: "totalProducing",
+    title: "In production",
+    zeroText: "Nothing in production",
+    dataKey: "totalProducing" as const,
+  },
+  {
+    checkKey: "totalInventory",
+    title: "In stock",
+    zeroText: "Nothing in stock",
+    dataKey: "totalInventory" as const,
+  },
+  {
+    checkKey: "totalSpill",
+    title: "Unused items",
+    zeroText: "No unused items",
+    dataKey: "totalSpill" as const,
+  },
 ]
 
-export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientCount = 0 }: Props) {
+export function KpiSection({
+  activeFilter,
+  onFilterChange,
+  rowCount = 0,
+  clientCount = 0,
+}: Props) {
   const { activeClientId } = useActiveClient()
   const syncToken = useResourceSync("orders", "inventory", "items", "products")
 
@@ -32,7 +57,8 @@ export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientC
   if (isError) {
     return (
       <p className="px-9 text-sm text-destructive">
-        Failed to load KPI data. Restart the dev server with "npm run dev".
+        Failed to load KPI data. Restart the dev server with &quot;npm run
+        dev&quot;.
       </p>
     )
   }
@@ -40,7 +66,10 @@ export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientC
   if (isPending) {
     return (
       <div className="flex h-24 items-center justify-center">
-        <Loader2 className="size-5 animate-spin" style={{ color: "var(--k-text-tertiary)" }} />
+        <Loader2
+          className="size-5 animate-spin"
+          style={{ color: "var(--k-text-tertiary)" }}
+        />
       </div>
     )
   }
@@ -85,24 +114,34 @@ export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientC
             <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span
                 style={{
-                  width: 7, height: 7, borderRadius: "50%",
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
                   background: "var(--k-cloud-deep)",
                   boxShadow: "0 0 6px var(--k-cloud-mid)",
                   flexShrink: 0,
                 }}
               />
               Filtered by:{" "}
-              <b style={{ color: "var(--k-cloud-deep)", fontWeight: 500 }}>{activeCard.title}</b>
-              <span style={{ color: "var(--k-text-tertiary)" }}>· {rowCount} results</span>
+              <b style={{ color: "var(--k-cloud-deep)", fontWeight: 500 }}>
+                {activeCard.title}
+              </b>
+              <span style={{ color: "var(--k-text-tertiary)" }}>
+                · {rowCount} results
+              </span>
             </span>
             <button
               onClick={() => onFilterChange(activeFilter)}
               style={{
                 background: "var(--k-bg)",
                 boxShadow: "var(--k-shadow-raised-xs)",
-                border: "none", outline: "none",
-                padding: "4px 12px", borderRadius: 99,
-                fontSize: 12, color: "var(--k-text-secondary)", cursor: "pointer",
+                border: "none",
+                outline: "none",
+                padding: "4px 12px",
+                borderRadius: 99,
+                fontSize: 12,
+                color: "var(--k-text-secondary)",
+                cursor: "pointer",
               }}
             >
               Clear ✕
@@ -112,14 +151,23 @@ export function KpiSection({ activeFilter, onFilterChange, rowCount = 0, clientC
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
-                width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                flexShrink: 0,
                 background: "var(--k-green-fg)",
                 boxShadow: "0 0 6px var(--k-green-fg)",
               }}
             />
-            <b style={{ color: "var(--k-text-primary)", fontWeight: 500 }}>{clientCount}</b>{" "}clients
+            <b style={{ color: "var(--k-text-primary)", fontWeight: 500 }}>
+              {clientCount}
+            </b>{" "}
+            clients
             <span style={{ color: "var(--k-text-tertiary)" }}>·</span>
-            <b style={{ color: "var(--k-text-primary)", fontWeight: 500 }}>{rowCount}</b>{" "}orders
+            <b style={{ color: "var(--k-text-primary)", fontWeight: 500 }}>
+              {rowCount}
+            </b>{" "}
+            orders
           </span>
         )}
       </div>

@@ -4,12 +4,18 @@ import * as React from "react"
 import { createColumnHelper } from "@tanstack/react-table"
 import { ArchiveIcon } from "lucide-react"
 
+import { DashboardPageHeader } from "@/components/dashboard/page-header"
 import { DataTable } from "@/components/data-table/data-table"
 import { FormField } from "@/components/data-table/form-field"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { Input } from "@/components/ui/input"
 import { NumberInput } from "@/components/ui/number-input"
-import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
+import {
+  createResource,
+  deleteResource,
+  fetchResource,
+  updateResource,
+} from "@/lib/api"
 import {
   buildInventoryRows,
   isVirtualInventoryId,
@@ -47,7 +53,9 @@ const EMPTY_FORM: InventoryForm = {
 }
 
 export default function InventoryPage() {
-  const [inventoryRecords, setInventoryRecords] = React.useState<InventoryRecord[]>([])
+  const [inventoryRecords, setInventoryRecords] = React.useState<
+    InventoryRecord[]
+  >([])
   const [items, setItems] = React.useState<Item[]>([])
   const [products, setProducts] = React.useState<Product[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
@@ -59,7 +67,7 @@ export default function InventoryPage() {
 
   const data = React.useMemo(
     () => buildInventoryRows(items, products, inventoryRecords),
-    [items, products, inventoryRecords],
+    [items, products, inventoryRecords]
   )
 
   React.useEffect(() => {
@@ -67,20 +75,23 @@ export default function InventoryPage() {
       fetchResource<InventoryRecord>("inventory"),
       fetchResource<Item>("items"),
       fetchResource<Product>("products"),
-    ]).then(([inventory, itemList, productList]) => {
-      setInventoryRecords(
-        inventory.map((entry) => ({
-          ...entry,
-          type: entry.type ?? (entry.productId ? "product" : "item"),
-          itemId: entry.itemId ?? null,
-          productId: entry.productId ?? null,
-        })),
-      )
-      setItems(itemList)
-      setProducts(productList)
-    }).catch(() => {
-      // Keep showing the last loaded data if a refresh fails.
-    }).finally(() => setIsLoading(false))
+    ])
+      .then(([inventory, itemList, productList]) => {
+        setInventoryRecords(
+          inventory.map((entry) => ({
+            ...entry,
+            type: entry.type ?? (entry.productId ? "product" : "item"),
+            itemId: entry.itemId ?? null,
+            productId: entry.productId ?? null,
+          }))
+        )
+        setItems(itemList)
+        setProducts(productList)
+      })
+      .catch(() => {
+        // Keep showing the last loaded data if a refresh fails.
+      })
+      .finally(() => setIsLoading(false))
   }, [syncToken])
 
   const openEdit = (entry: InventoryEntry) => {
@@ -122,21 +133,32 @@ export default function InventoryPage() {
         !isVirtualInventoryId(editingId) &&
         inventoryRecords.some((entry) => entry.id === editingId)
       ) {
-        const updated = await updateResource<InventoryRecord>("inventory", editingId, payload)
+        const updated = await updateResource<InventoryRecord>(
+          "inventory",
+          editingId,
+          payload
+        )
         setInventoryRecords((prev) =>
-          prev.map((entry) => (entry.id === editingId ? { ...entry, ...updated } : entry)),
+          prev.map((entry) =>
+            entry.id === editingId ? { ...entry, ...updated } : entry
+          )
         )
       } else if (existingRecord) {
         const updated = await updateResource<InventoryRecord>(
           "inventory",
           existingRecord.id,
-          payload,
+          payload
         )
         setInventoryRecords((prev) =>
-          prev.map((entry) => (entry.id === existingRecord.id ? { ...entry, ...updated } : entry)),
+          prev.map((entry) =>
+            entry.id === existingRecord.id ? { ...entry, ...updated } : entry
+          )
         )
       } else {
-        const created = await createResource<InventoryRecord>("inventory", payload)
+        const created = await createResource<InventoryRecord>(
+          "inventory",
+          payload
+        )
         setInventoryRecords((prev) => [...prev, created])
       }
       setDialogOpen(false)
@@ -151,38 +173,59 @@ export default function InventoryPage() {
     setInventoryRecords((prev) => prev.filter((entry) => entry.id !== id))
   }, [])
 
-  const getItem = (itemId: string | null) =>
-    itemId ? items.find((i) => i.id === itemId) : undefined
+  const getItem = React.useCallback(
+    (itemId: string | null | undefined) =>
+      itemId ? items.find((i) => i.id === itemId) : undefined,
+    [items]
+  )
 
-  const getProduct = (productId: string | null) =>
-    productId ? products.find((p) => p.id === productId) : undefined
+  const getProduct = React.useCallback(
+    (productId: string | null | undefined) =>
+      productId ? products.find((p) => p.id === productId) : undefined,
+    [products]
+  )
 
-  const getEntryName = (entry: InventoryEntry) => {
-    if (entry.type === "product" || entry.productId) {
-      return getProduct(entry.productId)?.name ?? entry.productId ?? "—"
-    }
-    return getItem(entry.itemId)?.name ?? entry.itemId ?? "—"
-  }
+  const getEntryName = React.useCallback(
+    (entry: InventoryEntry) => {
+      if (entry.type === "product" || entry.productId) {
+        return getProduct(entry.productId)?.name ?? entry.productId ?? "—"
+      }
+      return getItem(entry.itemId)?.name ?? entry.itemId ?? "—"
+    },
+    [getItem, getProduct]
+  )
 
-  const getEntryUnit = (entry: InventoryEntry) => {
-    if (entry.type === "product" || entry.productId) {
-      return getProduct(entry.productId)?.unit
-    }
-    return getItem(entry.itemId)?.unit
-  }
+  const getEntryUnit = React.useCallback(
+    (entry: InventoryEntry) => {
+      if (entry.type === "product" || entry.productId) {
+        return getProduct(entry.productId)?.unit
+      }
+      return getItem(entry.itemId)?.unit
+    },
+    [getItem, getProduct]
+  )
 
-  const getEntryMinimum = (entry: InventoryEntry) => {
-    if (entry.type === "product" || entry.productId) return 0
-    return getItem(entry.itemId)?.minimumInventory ?? 0
-  }
+  const getEntryMinimum = React.useCallback(
+    (entry: InventoryEntry) => {
+      if (entry.type === "product" || entry.productId) return 0
+      return getItem(entry.itemId)?.minimumInventory ?? 0
+    },
+    [getItem]
+  )
 
-  const getEntryTypeLabel = (entry: InventoryEntry) =>
-    entry.type === "product" || entry.productId ? "Product" : "Item"
+  const getEntryTypeLabel = React.useCallback(
+    (entry: InventoryEntry) =>
+      entry.type === "product" || entry.productId ? "Product" : "Item",
+    []
+  )
 
-  const formatQuantityFilterText = (entry: InventoryEntry, value: number) => {
-    const unit = getEntryUnit(entry) ?? ""
-    return `${value} ${formatAmount(value, unit)}`.trim()
-  }
+  const formatQuantityFilterText = React.useCallback(
+    (entry: InventoryEntry, value: number) => {
+      const unit = getEntryUnit(entry) ?? ""
+      return `${value} ${formatAmount(value, unit)}`.trim()
+    },
+    [getEntryUnit]
+  )
 
   const columns = React.useMemo(
     () => [
@@ -191,97 +234,113 @@ export default function InventoryPage() {
         {
           id: "name",
           header: "Item / Product",
-          enableColumnFilter: true,
-          filterFn: "includesString",
           meta: {
             filterPlaceholder: "Search name…",
-            filterText: (row) => `${getEntryTypeLabel(row)} ${getEntryName(row)}`,
+            filterText: (row) =>
+              `${getEntryTypeLabel(row)} ${getEntryName(row)}`,
           },
           cell: ({ row }) => {
-            const isProduct = row.original.type === "product" || !!row.original.productId
+            const isProduct =
+              row.original.type === "product" || !!row.original.productId
             return (
               <div className="flex flex-col gap-0.5">
-                <span className="font-medium">{getEntryName(row.original)}</span>
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span className="font-medium">
+                  {getEntryName(row.original)}
+                </span>
+                <span className="text-[10px] tracking-wide text-muted-foreground uppercase">
                   {isProduct ? "Product" : "Item"}
                 </span>
               </div>
             )
           },
-        },
+        }
       ),
       columnHelper.accessor("available", {
         header: "Available",
-        enableColumnFilter: true,
-        filterFn: "includesString",
         meta: {
           filterPlaceholder: "Search available…",
           filterText: (row) => {
-            const status = getInventoryStockStatus(row.available, getEntryMinimum(row))
+            const status = getInventoryStockStatus(
+              row.available,
+              getEntryMinimum(row)
+            )
             return `${formatQuantityFilterText(row, row.available)} ${INVENTORY_STATUS_LABELS[status]}`
           },
         },
         cell: ({ row, getValue }) => {
           const unit = getEntryUnit(row.original)
-          return <span className="tabular-nums">{formatAmount(getValue() ?? 0, unit)}</span>
+          return (
+            <span className="tabular-nums">
+              {formatAmount(getValue() ?? 0, unit)}
+            </span>
+          )
         },
       }),
       columnHelper.accessor("reserved", {
         header: "Reserved",
-        enableColumnFilter: true,
-        filterFn: "includesString",
         meta: {
           filterPlaceholder: "Search reserved…",
           filterText: (row) => formatQuantityFilterText(row, row.reserved),
         },
         cell: ({ row, getValue }) => (
-          <span className="tabular-nums">{formatAmount(getValue() ?? 0, getEntryUnit(row.original))}</span>
+          <span className="tabular-nums">
+            {formatAmount(getValue() ?? 0, getEntryUnit(row.original))}
+          </span>
         ),
       }),
       columnHelper.accessor("inUse", {
         header: "In use",
-        enableColumnFilter: true,
-        filterFn: "includesString",
         meta: {
           filterPlaceholder: "Search in use…",
           filterText: (row) => formatQuantityFilterText(row, row.inUse),
         },
         cell: ({ row, getValue }) => (
-          <span className="tabular-nums">{formatAmount(getValue() ?? 0, getEntryUnit(row.original))}</span>
+          <span className="tabular-nums">
+            {formatAmount(getValue() ?? 0, getEntryUnit(row.original))}
+          </span>
         ),
       }),
       columnHelper.accessor((row) => getInventoryTotal(row), {
         id: "total",
         header: "Total",
-        enableColumnFilter: true,
-        filterFn: "includesString",
         meta: {
           filterPlaceholder: "Search total…",
-          filterText: (row) => formatQuantityFilterText(row, getInventoryTotal(row)),
+          filterText: (row) =>
+            formatQuantityFilterText(row, getInventoryTotal(row)),
         },
         cell: ({ row }) => (
-          <span className="tabular-nums font-medium">
-            {formatAmount(getInventoryTotal(row.original), getEntryUnit(row.original))}
+          <span className="font-medium tabular-nums">
+            {formatAmount(
+              getInventoryTotal(row.original),
+              getEntryUnit(row.original)
+            )}
           </span>
         ),
       }),
       columnHelper.accessor(
-        (row) => INVENTORY_STATUS_LABELS[getInventoryStockStatus(row.available, getEntryMinimum(row))],
+        (row) =>
+          INVENTORY_STATUS_LABELS[
+            getInventoryStockStatus(row.available, getEntryMinimum(row))
+          ],
         {
           id: "status",
           header: "Status",
-          enableColumnFilter: true,
-          filterFn: "includesString",
           meta: {
             filterPlaceholder: "Search status…",
             filterText: (row) => {
-              const status = getInventoryStockStatus(row.available, getEntryMinimum(row))
+              const status = getInventoryStockStatus(
+                row.available,
+                getEntryMinimum(row)
+              )
               return `${INVENTORY_STATUS_LABELS[status]} ${status.replace(/_/g, " ")}`
             },
           },
           cell: ({ row }) => {
             const minimum = getEntryMinimum(row.original)
-            const status = getInventoryStockStatus(row.original.available, minimum)
+            const status = getInventoryStockStatus(
+              row.original.available,
+              minimum
+            )
             return (
               <span
                 className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${INVENTORY_STATUS_COLORS[status]}`}
@@ -295,13 +354,11 @@ export default function InventoryPage() {
               </span>
             )
           },
-        },
+        }
       ),
       columnHelper.accessor((row) => getEntryMinimum(row), {
         id: "minimumInventory",
         header: "Minimum",
-        enableColumnFilter: true,
-        filterFn: "includesString",
         meta: {
           filterPlaceholder: "Search minimum…",
           filterText: (row) => {
@@ -314,7 +371,7 @@ export default function InventoryPage() {
           const minimum = getEntryMinimum(row.original)
           if (!minimum) return <span className="text-muted-foreground">—</span>
           return (
-            <span className="tabular-nums text-muted-foreground">
+            <span className="text-muted-foreground tabular-nums">
               {formatAmount(minimum, getEntryUnit(row.original))}
             </span>
           )
@@ -322,8 +379,6 @@ export default function InventoryPage() {
       }),
       columnHelper.accessor("warehouse", {
         header: "Warehouse",
-        enableColumnFilter: true,
-        filterFn: "includesString",
         meta: {
           filterPlaceholder: "Search warehouse…",
           filterText: (row) => row.warehouse ?? "",
@@ -331,7 +386,13 @@ export default function InventoryPage() {
         cell: ({ getValue }) => getValue(),
       }),
     ],
-    [items, products],
+    [
+      formatQuantityFilterText,
+      getEntryMinimum,
+      getEntryName,
+      getEntryTypeLabel,
+      getEntryUnit,
+    ]
   )
 
   const selectedUnit =
@@ -339,19 +400,17 @@ export default function InventoryPage() {
       ? getProduct(form.productId)?.unit
       : getItem(form.itemId)?.unit
 
-  const editingRow = editingId ? data.find((row) => row.id === editingId) : undefined
+  const editingRow = editingId
+    ? data.find((row) => row.id === editingId)
+    : undefined
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-2">
-        <ArchiveIcon className="size-5 text-muted-foreground" />
-        <div>
-          <h1 className="text-lg font-semibold">Inventory</h1>
-          <p className="text-xs text-muted-foreground">
-            Raw materials and finished products across available, reserved, and in-use amounts. Use the column filters to search any field.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        icon={ArchiveIcon}
+        title="Inventory"
+        description="Raw materials and finished products across available, reserved, and in-use amounts. Use the column filters to search any field."
+      />
 
       <DataTable
         data={data}
@@ -366,7 +425,11 @@ export default function InventoryPage() {
       <ResourceFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        title={editingRow && !editingRow.persisted ? "Set inventory" : "Edit inventory entry"}
+        title={
+          editingRow && !editingRow.persisted
+            ? "Set inventory"
+            : "Edit inventory entry"
+        }
         description={
           editingRow
             ? `${getEntryTypeLabel(editingRow)}: ${getEntryName(editingRow)}`
@@ -413,7 +476,9 @@ export default function InventoryPage() {
           <Input
             id="inventory-warehouse"
             value={form.warehouse}
-            onChange={(e) => setForm((f) => ({ ...f, warehouse: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, warehouse: e.target.value }))
+            }
             required
           />
         </FormField>

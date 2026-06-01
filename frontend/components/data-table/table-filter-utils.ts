@@ -12,11 +12,19 @@ declare module "@tanstack/react-table" {
   }
 }
 
-export const includesStringFilter: FilterFn<unknown> = (row, columnId, filterValue) => {
-  const query = String(filterValue ?? "").trim().toLowerCase()
+export const includesStringFilter: FilterFn<unknown> = (
+  row,
+  columnId,
+  filterValue
+) => {
+  const query = String(filterValue ?? "")
+    .trim()
+    .toLowerCase()
   if (!query) return true
 
-  const column = row.getAllCells().find((cell) => cell.column.id === columnId)?.column
+  const column = row
+    .getAllCells()
+    .find((cell) => cell.column.id === columnId)?.column
   const filterText = column?.columnDef.meta?.filterText
 
   let text: string
@@ -34,4 +42,24 @@ export const includesStringFilter: FilterFn<unknown> = (row, columnId, filterVal
   }
 
   return text.toLowerCase().includes(query)
+}
+
+export function isActiveFilter(value: unknown) {
+  return Boolean(String(value ?? "").trim())
+}
+
+export function joinFilterText(
+  values: Array<string | number | null | undefined>
+) {
+  return values
+    .filter((value) => value !== null && value !== undefined)
+    .join(" ")
+}
+
+export function formattedNumberFilterText(
+  value: number | null | undefined,
+  formatter: (value: number) => string
+) {
+  if (value === null || value === undefined) return ""
+  return joinFilterText([formatter(value), value])
 }

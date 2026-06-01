@@ -4,15 +4,22 @@ import * as React from "react"
 import { createColumnHelper } from "@tanstack/react-table"
 import { PackageIcon } from "lucide-react"
 
+import { DashboardPageHeader } from "@/components/dashboard/page-header"
 import { DataTable } from "@/components/data-table/data-table"
 import { ExpandedDetailColumn } from "@/components/data-table/expanded-detail-column"
 import { FormField } from "@/components/data-table/form-field"
-import { LineItemsEditor } from "@/components/data-table/line-items-editor"
+import { LineItemsEditor } from "@/components/forms/line-items-editor"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
-import { SelectField } from "@/components/data-table/select-field"
+import { SelectField } from "@/components/forms/select-field"
 import { Input } from "@/components/ui/input"
 import { NumberInput } from "@/components/ui/number-input"
-import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
+import { useLineItemsField } from "@/hooks/use-line-items-field"
+import {
+  createResource,
+  deleteResource,
+  fetchResource,
+  updateResource,
+} from "@/lib/api"
 import { useResourceSync } from "@/providers"
 import { computeProductTotalCost, formatPrice } from "@/lib/pricing"
 
@@ -57,14 +64,16 @@ const PRODUCTS_TABLE_COLGROUP = (
 
 function buildProductExpandedCells(
   components: Component[],
-  items: Item[],
+  items: Item[]
 ): (React.ReactNode | null)[] {
   if (!components.length) {
     return [
       null,
       null,
       null,
-      <p className="text-xs text-muted-foreground">No components in this recipe.</p>,
+      <p key="empty-components" className="text-xs text-muted-foreground">
+        No components in this recipe.
+      </p>,
       null,
       null,
     ]
@@ -88,14 +97,20 @@ function buildProductExpandedCells(
     null,
     <ExpandedDetailColumn key="item" label="Item">
       {rows.map((row) => (
-        <span key={row.key} className="block min-w-0 truncate text-xs font-medium">
+        <span
+          key={row.key}
+          className="block min-w-0 truncate text-xs font-medium"
+        >
           {row.name}
         </span>
       ))}
     </ExpandedDetailColumn>,
     <ExpandedDetailColumn key="amount" label="Amount" align="right">
       {rows.map((row) => (
-        <span key={row.key} className="text-xs tabular-nums text-muted-foreground">
+        <span
+          key={row.key}
+          className="text-xs text-muted-foreground tabular-nums"
+        >
           {row.amount}
           {row.unit ? ` ${row.unit}` : ""}
         </span>
@@ -103,7 +118,10 @@ function buildProductExpandedCells(
     </ExpandedDetailColumn>,
     <ExpandedDetailColumn key="cost" label="Line cost" align="right">
       {rows.map((row) => (
-        <span key={row.key} className="text-xs tabular-nums text-muted-foreground">
+        <span
+          key={row.key}
+          className="text-xs text-muted-foreground tabular-nums"
+        >
           {formatPrice(row.lineCost)}
         </span>
       ))}
@@ -127,11 +145,13 @@ export default function ProductsPage() {
       fetchResource<Product>("products"),
       fetchResource<Item>("items"),
       fetchResource<Client>("clients"),
-    ]).then(([products, itemList, clientList]) => {
-      setData(products)
-      setItems(itemList)
-      setClients(clientList)
-    }).finally(() => setIsLoading(false))
+    ])
+      .then(([products, itemList, clientList]) => {
+        setData(products)
+        setItems(itemList)
+        setClients(clientList)
+      })
+      .finally(() => setIsLoading(false))
   }, [syncToken])
 
   const openCreate = () => {
@@ -161,8 +181,14 @@ export default function ProductsPage() {
         sellPrice: Number(form.sellPrice) || 0,
       }
       if (editingId) {
-        const updated = await updateResource<Product>("products", editingId, payload)
-        setData((prev) => prev.map((p) => (p.id === editingId ? { ...p, ...updated } : p)))
+        const updated = await updateResource<Product>(
+          "products",
+          editingId,
+          payload
+        )
+        setData((prev) =>
+          prev.map((p) => (p.id === editingId ? { ...p, ...updated } : p))
+        )
       } else {
         const created = await createResource<Product>("products", payload)
         setData((prev) => [...prev, created])
@@ -188,16 +214,32 @@ export default function ProductsPage() {
         })
         .join(", ")
     },
-    [items],
+    [items]
   )
 
   const itemOptions = items.map((i) => ({ id: i.id, label: i.name }))
+  const setComponents = React.useCallback(
+    (updater: (components: Component[]) => Component[]) => {
+      setForm((f) => ({ ...f, components: updater(f.components) }))
+    },
+    []
+  )
+  const componentLines = useLineItemsField(
+    form.components,
+    setComponents,
+    React.useCallback(
+      () => ({ itemId: items[0]?.id ?? "", amount: 0 }),
+      [items]
+    )
+  )
 
   const columns = React.useMemo(
     () => [
       columnHelper.accessor("name", {
         header: "Name",
-        cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
+        cell: ({ getValue }) => (
+          <span className="font-medium">{getValue()}</span>
+        ),
       }),
       columnHelper.accessor("unit", {
         header: "Unit",
@@ -208,16 +250,26 @@ export default function ProductsPage() {
         meta: {
           filterText: (row) => {
             if (!row.clientId) return "Standard catalog"
-            return clients.find((c) => c.id === row.clientId)?.name ?? row.clientId
+            return (
+              clients.find((c) => c.id === row.clientId)?.name ?? row.clientId
+            )
           },
         },
         cell: ({ getValue }) => {
           const clientId = getValue()
           if (!clientId) {
-            return <span className="text-xs text-muted-foreground">Standard catalog</span>
+            return (
+              <span className="text-xs text-muted-foreground">
+                Standard catalog
+              </span>
+            )
           }
           const client = clients.find((c) => c.id === clientId)
-          return <span className="text-xs font-medium">{client?.name ?? clientId}</span>
+          return (
+            <span className="text-xs font-medium">
+              {client?.name ?? clientId}
+            </span>
+          )
         },
       }),
       columnHelper.accessor("components", {
@@ -226,7 +278,10 @@ export default function ProductsPage() {
           filterText: (row) => summarizeComponents(row.components),
         },
         cell: ({ getValue }) => (
-          <span className="block truncate text-xs text-muted-foreground" title={summarizeComponents(getValue())}>
+          <span
+            className="block truncate text-xs text-muted-foreground"
+            title={summarizeComponents(getValue())}
+          >
             {summarizeComponents(getValue())}
           </span>
         ),
@@ -239,8 +294,10 @@ export default function ProductsPage() {
             formatPrice(computeProductTotalCost(row.components, items)),
         },
         cell: ({ row }) => (
-          <span className="block text-right tabular-nums text-muted-foreground">
-            {formatPrice(computeProductTotalCost(row.original.components, items))}
+          <span className="block text-right text-muted-foreground tabular-nums">
+            {formatPrice(
+              computeProductTotalCost(row.original.components, items)
+            )}
           </span>
         ),
       }),
@@ -250,29 +307,27 @@ export default function ProductsPage() {
           filterText: (row) => `${formatPrice(row.sellPrice)} ${row.sellPrice}`,
         },
         cell: ({ getValue }) => (
-          <span className="block text-right tabular-nums font-medium">{formatPrice(getValue())}</span>
+          <span className="block text-right font-medium tabular-nums">
+            {formatPrice(getValue())}
+          </span>
         ),
       }),
     ],
-    [summarizeComponents, clients, items],
+    [summarizeComponents, clients, items]
   )
 
   const renderExpandedRowCells = React.useCallback(
     (product: Product) => buildProductExpandedCells(product.components, items),
-    [items],
+    [items]
   )
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-2">
-        <PackageIcon className="size-5 text-muted-foreground" />
-        <div>
-          <h1 className="text-lg font-semibold">Products</h1>
-          <p className="text-xs text-muted-foreground">
-            Finished paint sold in barrels. Click a row to expand its recipe; use the edit icon to change details.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        icon={PackageIcon}
+        title="Products"
+        description="Finished paint sold in barrels. Click a row to expand its recipe; use the edit icon to change details."
+      />
 
       <DataTable
         data={data}
@@ -329,7 +384,7 @@ export default function ProductsPage() {
             id="product-total-cost"
             value={formatPrice(computeProductTotalCost(form.components, items))}
             readOnly
-            className="tabular-nums bg-muted/40"
+            className="bg-muted/40 tabular-nums"
           />
         </FormField>
         <FormField label="Client" htmlFor="product-client">
@@ -354,32 +409,19 @@ export default function ProductsPage() {
           getOptionId={(c) => c.itemId}
           getQuantity={(c) => c.amount}
           setOptionId={(index, itemId) =>
-            setForm((f) => ({
-              ...f,
-              components: f.components.map((c, i) => (i === index ? { ...c, itemId } : c)),
+            componentLines.setLine(index, (component) => ({
+              ...component,
+              itemId,
             }))
           }
           setQuantity={(index, amount) =>
-            setForm((f) => ({
-              ...f,
-              components: f.components.map((c, i) => (i === index ? { ...c, amount } : c)),
+            componentLines.setLine(index, (component) => ({
+              ...component,
+              amount,
             }))
           }
-          addItem={() =>
-            setForm((f) => ({
-              ...f,
-              components: [
-                ...f.components,
-                { itemId: items[0]?.id ?? "", amount: 0 },
-              ],
-            }))
-          }
-          removeItem={(index) =>
-            setForm((f) => ({
-              ...f,
-              components: f.components.filter((_, i) => i !== index),
-            }))
-          }
+          addItem={componentLines.addItem}
+          removeItem={componentLines.removeItem}
           optionLabel="Component"
           quantityLabel="Amount"
         />

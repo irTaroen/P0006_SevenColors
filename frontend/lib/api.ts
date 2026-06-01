@@ -7,12 +7,16 @@ export async function fetchResource<T>(resource: string): Promise<T[]> {
     res = await fetch(`${API_BASE}/${resource}`)
   } catch {
     throw new Error(
-      `Cannot reach the API. Restart the dev server with "npm run dev".`,
+      `Cannot reach the API. Restart the dev server with "npm run dev".`
     )
   }
   if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null
-    throw new Error(body?.error ?? `Failed to fetch ${resource} (${res.status})`)
+    const body = (await res.json().catch(() => null)) as {
+      error?: string
+    } | null
+    throw new Error(
+      body?.error ?? `Failed to fetch ${resource} (${res.status})`
+    )
   }
   return res.json()
 }
@@ -20,7 +24,7 @@ export async function fetchResource<T>(resource: string): Promise<T[]> {
 export async function updateResource<T>(
   resource: string,
   id: string,
-  data: Partial<T>,
+  data: Partial<T>
 ): Promise<T> {
   const res = await fetch(`${API_BASE}/${resource}/${id}`, {
     method: "PATCH",
@@ -28,42 +32,36 @@ export async function updateResource<T>(
     body: JSON.stringify(data),
   })
   if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null
+    const body = (await res.json().catch(() => null)) as {
+      error?: string
+    } | null
     throw new Error(body?.error ?? `Failed to update ${resource}/${id}`)
   }
   return res.json()
 }
 
-export async function deleteResource(resource: string, id: string): Promise<void> {
+export async function deleteResource(
+  resource: string,
+  id: string
+): Promise<void> {
   const res = await fetch(`${API_BASE}/${resource}/${id}`, { method: "DELETE" })
   if (!res.ok) throw new Error(`Failed to delete ${resource}/${id}`)
 }
 
-export async function createResource<T>(resource: string, data: Omit<T, "id">): Promise<T> {
+export async function createResource<T>(
+  resource: string,
+  data: Omit<T, "id">
+): Promise<T> {
   const res = await fetch(`${API_BASE}/${resource}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
   if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null
+    const body = (await res.json().catch(() => null)) as {
+      error?: string
+    } | null
     throw new Error(body?.error ?? `Failed to create ${resource}`)
-  }
-  return res.json()
-}
-
-export type ReserveInventoryResponse = {
-  requirements: { itemId: string; required: number }[]
-  processedOrderIds: string[]
-  inventory: unknown[]
-  orders: unknown[]
-}
-
-export async function reserveInventoryForApprovedOrders(): Promise<ReserveInventoryResponse> {
-  const res = await fetch(`${API_BASE}/reserve-inventory`, { method: "POST" })
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null
-    throw new Error(body?.error ?? "Failed to reserve inventory for approved orders")
   }
   return res.json()
 }

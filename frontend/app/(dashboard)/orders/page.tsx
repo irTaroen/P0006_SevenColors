@@ -4,14 +4,21 @@ import * as React from "react"
 import { createColumnHelper } from "@tanstack/react-table"
 import { ShoppingCartIcon } from "lucide-react"
 
+import { DashboardPageHeader } from "@/components/dashboard/page-header"
 import { DataTable } from "@/components/data-table/data-table"
 import { ExpandedDetailColumn } from "@/components/data-table/expanded-detail-column"
 import { FormField } from "@/components/data-table/form-field"
-import { LineItemsEditor } from "@/components/data-table/line-items-editor"
+import { LineItemsEditor } from "@/components/forms/line-items-editor"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
-import { SelectField } from "@/components/data-table/select-field"
+import { SelectField } from "@/components/forms/select-field"
 import { Input } from "@/components/ui/input"
-import { createResource, deleteResource, fetchResource, updateResource } from "@/lib/api"
+import { useLineItemsField } from "@/hooks/use-line-items-field"
+import {
+  createResource,
+  deleteResource,
+  fetchResource,
+  updateResource,
+} from "@/lib/api"
 import { useResourceSync } from "@/providers"
 import {
   getOrderStatusColor,
@@ -27,13 +34,18 @@ import {
   ORDER_TYPES,
   type OrderType,
 } from "@/lib/order-type"
-import { computeOrderTotalCost, computeOrderTotalPrice, formatPrice } from "@/lib/pricing"
+import {
+  computeOrderTotalCost,
+  computeOrderTotalPrice,
+  formatPrice,
+} from "@/lib/pricing"
 import { getProductAvailableStock } from "@/lib/inventory-rows"
 import type { InventoryEntry as InventoryRecord } from "@/lib/inventory-rows"
 import { getProductsForClient } from "@/lib/product-catalog"
-import { getProductionRequirementPreview } from "@/lib/reserve-inventory"
-
-const STATUS_LABELS = ORDER_STATUS_LABELS
+import {
+  getProductionRequirementPreview,
+  type ProductionRequirementPreview,
+} from "@/lib/reserve-inventory"
 
 type OrderProduct = { productId: string; quantity: number }
 
@@ -59,7 +71,7 @@ type Product = {
   sellPrice: number
   unit: string
   clientId: string | null
-  components?: { itemId: string; amount: number }[]
+  components: { itemId: string; amount: number }[]
 }
 
 type OrderForm = Omit<Order, "id">
@@ -98,7 +110,7 @@ const ORDERS_TABLE_COLGROUP = (
 
 function buildOrderExpandedCells(
   lines: OrderProduct[],
-  products: Product[],
+  products: Product[]
 ): (React.ReactNode | null)[] {
   if (!lines.length) {
     return [
@@ -108,7 +120,9 @@ function buildOrderExpandedCells(
       null,
       null,
       null,
-      <p className="text-xs text-muted-foreground">No products on this order.</p>,
+      <p key="empty-order-products" className="text-xs text-muted-foreground">
+        No products on this order.
+      </p>,
       null,
     ]
   }
@@ -132,26 +146,122 @@ function buildOrderExpandedCells(
     null,
     <ExpandedDetailColumn key="qty" label="Quantity" align="right">
       {rows.map((row) => (
-        <span key={row.key} className="text-xs tabular-nums text-muted-foreground">
+        <span
+          key={row.key}
+          className="text-xs text-muted-foreground tabular-nums"
+        >
           {row.quantity}
         </span>
       ))}
     </ExpandedDetailColumn>,
     <ExpandedDetailColumn key="product" label="Product">
       {rows.map((row) => (
-        <span key={row.key} className="block min-w-0 truncate text-xs font-medium">
+        <span
+          key={row.key}
+          className="block min-w-0 truncate text-xs font-medium"
+        >
           {row.name}
         </span>
       ))}
     </ExpandedDetailColumn>,
     <ExpandedDetailColumn key="price" label="Line price" align="right">
       {rows.map((row) => (
-        <span key={row.key} className="text-xs tabular-nums text-muted-foreground">
+        <span
+          key={row.key}
+          className="text-xs text-muted-foreground tabular-nums"
+        >
           {formatPrice(row.linePrice)}
         </span>
       ))}
     </ExpandedDetailColumn>,
   ]
+}
+
+function ProductionPreviewPanel({
+  preview,
+  getProductLabel,
+  getProductUnit,
+  getItemLabel,
+  getItemUnit,
+}: {
+  preview: ProductionRequirementPreview
+  getProductLabel: (productId: string) => string
+  getProductUnit: (productId: string) => string | undefined
+  getItemLabel: (itemId: string) => string
+  getItemUnit: (itemId: string) => string | undefined
+}) {
+  if (!preview.hasProductShortages) return null
+
+  return (
+    <div className="neu-card-inset-sm rounded-2xl p-4 text-sm">
+      <div className="mb-3">
+        <p className="font-medium">Production required</p>
+        <p className="text-xs text-muted-foreground">
+          Finished product stock is short. These barrels need to be produced
+          before the customer order can continue.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3">
+        {preview.products
+          .filter((requirement) => requirement.toProduce > 0)
+          .map((requirement, index) => {
+            const unit = getProductUnit(requirement.productId)
+            return (
+              <div
+                key={`${requirement.productId}-${index}`}
+                className="space-y-1"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium">
+                    {getProductLabel(requirement.productId)}
+                  </span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {requirement.available} / {requirement.required}
+                    {unit ? ` ${unit}` : ""} in stock
+                  </span>
+                </div>
+                <p className="text-xs text-destructive tabular-nums">
+                  Produce {requirement.toProduce}
+                  {unit ? ` ${unit}` : ""}.
+                </p>
+              </div>
+            )
+          })}
+      </div>
+      {preview.itemRequirements.length ? (
+        <div className="mt-4 border-t border-border/60 pt-3">
+          <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Raw materials needed
+          </p>
+          <div className="flex flex-col gap-2">
+            {preview.itemRequirements.map((requirement) => {
+              const unit = getItemUnit(requirement.itemId)
+              const insufficient = requirement.available < requirement.required
+              return (
+                <div
+                  key={requirement.itemId}
+                  className="flex items-center justify-between gap-3 text-xs"
+                >
+                  <span>{getItemLabel(requirement.itemId)}</span>
+                  <span
+                    className={`tabular-nums ${
+                      insufficient
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Need {requirement.required}
+                    {unit ? ` ${unit}` : ""}, have {requirement.available}
+                    {unit ? ` ${unit}` : ""}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 export default function OrdersPage() {
@@ -168,7 +278,13 @@ export default function OrdersPage() {
   const [form, setForm] = React.useState<OrderForm>(EMPTY_FORM)
   const [isSaving, setIsSaving] = React.useState(false)
   const [saveError, setSaveError] = React.useState<string | null>(null)
-  const syncToken = useResourceSync("orders", "clients", "products", "items", "inventory")
+  const syncToken = useResourceSync(
+    "orders",
+    "clients",
+    "products",
+    "items",
+    "inventory"
+  )
 
   const refreshOrdersAndInventory = React.useCallback(async () => {
     const [orders, inventory] = await Promise.all([
@@ -186,15 +302,18 @@ export default function OrdersPage() {
       fetchResource<Product>("products"),
       fetchResource<Item>("items"),
       fetchResource<Omit<InventoryRecord, "persisted">>("inventory"),
-    ]).then(([orders, clientList, productList, itemList, inventory]) => {
-      setData(orders)
-      setClients(clientList)
-      setProducts(productList)
-      setItems(itemList)
-      setInventoryRecords(inventory)
-    }).catch(() => {
-      // Keep showing the last loaded data if a refresh fails.
-    }).finally(() => setIsLoading(false))
+    ])
+      .then(([orders, clientList, productList, itemList, inventory]) => {
+        setData(orders)
+        setClients(clientList)
+        setProducts(productList)
+        setItems(itemList)
+        setInventoryRecords(inventory)
+      })
+      .catch(() => {
+        // Keep showing the last loaded data if a refresh fails.
+      })
+      .finally(() => setIsLoading(false))
   }, [syncToken])
 
   const openCreate = () => {
@@ -240,16 +359,21 @@ export default function OrdersPage() {
       await refreshOrdersAndInventory()
       setDialogOpen(false)
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Failed to save order")
+      setSaveError(
+        error instanceof Error ? error.message : "Failed to save order"
+      )
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleDelete = React.useCallback(async (id: string) => {
-    await deleteResource("orders", id)
-    await refreshOrdersAndInventory()
-  }, [refreshOrdersAndInventory])
+  const handleDelete = React.useCallback(
+    async (id: string) => {
+      await deleteResource("orders", id)
+      await refreshOrdersAndInventory()
+    },
+    [refreshOrdersAndInventory]
+  )
 
   const resolveProducts = React.useCallback(
     (orderProducts: OrderProduct[]) => {
@@ -261,7 +385,7 @@ export default function OrdersPage() {
         })
         .join(", ")
     },
-    [products],
+    [products]
   )
 
   const productOptions = React.useMemo(() => {
@@ -270,6 +394,20 @@ export default function OrdersPage() {
   }, [products, form.clientId])
 
   const defaultProductId = productOptions[0]?.id ?? ""
+  const setOrderProducts = React.useCallback(
+    (updater: (products: OrderProduct[]) => OrderProduct[]) => {
+      setForm((f) => ({ ...f, products: updater(f.products) }))
+    },
+    []
+  )
+  const orderProductLines = useLineItemsField(
+    form.products,
+    setOrderProducts,
+    React.useCallback(
+      () => ({ productId: defaultProductId, quantity: 1 }),
+      [defaultProductId]
+    )
+  )
 
   const sanitizeOrderProducts = React.useCallback(
     (lines: OrderProduct[], clientId: string) => {
@@ -283,11 +421,11 @@ export default function OrdersPage() {
             ? line
             : fallbackId
               ? { ...line, productId: fallbackId }
-              : null,
+              : null
         )
         .filter((line): line is OrderProduct => line !== null)
     },
-    [products],
+    [products]
   )
 
   const getProductStock = React.useCallback(
@@ -299,47 +437,54 @@ export default function OrdersPage() {
         unit: product?.unit,
       }
     },
-    [inventoryRecords, products],
+    [inventoryRecords, products]
   )
 
   const productionPreview = React.useMemo(() => {
     if (form.type !== "external" || !form.products.length) return null
 
     try {
-      return getProductionRequirementPreview(form.products, products, inventoryRecords)
+      return getProductionRequirementPreview(
+        form.products,
+        products,
+        inventoryRecords
+      )
     } catch {
       return null
     }
   }, [form.products, form.type, inventoryRecords, products])
 
   const getItemLabel = React.useCallback(
-    (itemId: string) => items.find((item) => item.id === itemId)?.name ?? itemId,
-    [items],
+    (itemId: string) =>
+      items.find((item) => item.id === itemId)?.name ?? itemId,
+    [items]
   )
 
   const getItemUnit = React.useCallback(
     (itemId: string) => items.find((item) => item.id === itemId)?.unit,
-    [items],
+    [items]
   )
 
   const getProductLabel = React.useCallback(
-    (productId: string) => products.find((product) => product.id === productId)?.name ?? productId,
-    [products],
+    (productId: string) =>
+      products.find((product) => product.id === productId)?.name ?? productId,
+    [products]
   )
 
   const getProductUnit = React.useCallback(
-    (productId: string) => products.find((product) => product.id === productId)?.unit,
-    [products],
+    (productId: string) =>
+      products.find((product) => product.id === productId)?.unit,
+    [products]
   )
 
   const orderTotalSell = React.useMemo(
     () => computeOrderTotalPrice(form.products, products),
-    [form.products, products],
+    [form.products, products]
   )
 
   const orderTotalCost = React.useMemo(
     () => computeOrderTotalCost(form.products, products, items),
-    [form.products, products, items],
+    [form.products, products, items]
   )
 
   const orderTotalProfit = orderTotalSell - orderTotalCost
@@ -350,11 +495,17 @@ export default function OrdersPage() {
         header: "Client",
         meta: {
           filterText: (row) =>
-            clients.find((c) => c.id === row.clientId)?.name ?? row.clientId ?? "",
+            clients.find((c) => c.id === row.clientId)?.name ??
+            row.clientId ??
+            "",
         },
         cell: ({ getValue }) => {
           const client = clients.find((c) => c.id === getValue())
-          return <span className="font-medium">{client?.name ?? getValue() ?? "—"}</span>
+          return (
+            <span className="font-medium">
+              {client?.name ?? getValue() ?? "—"}
+            </span>
+          )
         },
       }),
       columnHelper.accessor("type", {
@@ -363,25 +514,33 @@ export default function OrdersPage() {
           filterText: (row) => getOrderTypeLabel(row.type),
         },
         cell: ({ getValue }) => (
-          <span className="text-xs font-medium capitalize">{getOrderTypeLabel(getValue())}</span>
+          <span className="text-xs font-medium capitalize">
+            {getOrderTypeLabel(getValue())}
+          </span>
         ),
       }),
       columnHelper.accessor("orderDate", {
         header: "Order date",
         cell: ({ getValue }) => (
-          <span className="tabular-nums text-muted-foreground">{formatOrderDate(getValue())}</span>
+          <span className="text-muted-foreground tabular-nums">
+            {formatOrderDate(getValue())}
+          </span>
         ),
       }),
       columnHelper.accessor("productionDate", {
         header: "Production date",
         cell: ({ getValue }) => (
-          <span className="tabular-nums text-muted-foreground">{formatOrderDate(getValue())}</span>
+          <span className="text-muted-foreground tabular-nums">
+            {formatOrderDate(getValue())}
+          </span>
         ),
       }),
       columnHelper.accessor("deliveryDate", {
         header: "Delivery date",
         cell: ({ getValue }) => (
-          <span className="tabular-nums text-muted-foreground">{formatOrderDate(getValue())}</span>
+          <span className="text-muted-foreground tabular-nums">
+            {formatOrderDate(getValue())}
+          </span>
         ),
       }),
       columnHelper.accessor("status", {
@@ -418,23 +577,27 @@ export default function OrdersPage() {
         header: () => <span className="block text-right">Total price</span>,
         meta: {
           filterText: (row) => {
-            const total = row.totalPrice ?? computeOrderTotalPrice(row.products, products)
+            const total =
+              row.totalPrice ?? computeOrderTotalPrice(row.products, products)
             return `${formatPrice(total)} ${total}`
           },
         },
         cell: ({ row, getValue }) => (
-          <span className="block text-right tabular-nums font-medium">
-            {formatPrice(getValue() ?? computeOrderTotalPrice(row.original.products, products))}
+          <span className="block text-right font-medium tabular-nums">
+            {formatPrice(
+              getValue() ??
+                computeOrderTotalPrice(row.original.products, products)
+            )}
           </span>
         ),
       }),
     ],
-    [clients, resolveProducts, products],
+    [clients, resolveProducts, products]
   )
 
   const renderExpandedRowCells = React.useCallback(
     (order: Order) => buildOrderExpandedCells(order.products, products),
-    [products],
+    [products]
   )
 
   const getOrderLabel = (order: Order) => {
@@ -444,15 +607,11 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-2">
-        <ShoppingCartIcon className="size-5 text-muted-foreground" />
-        <div>
-          <h1 className="text-lg font-semibold">Orders</h1>
-          <p className="text-xs text-muted-foreground">
-            Customer orders. Click a row to expand its line items; use the edit icon to change details.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        icon={ShoppingCartIcon}
+        title="Orders"
+        description="Customer orders. Click a row to expand its line items; use the edit icon to change details."
+      />
 
       <DataTable
         data={data}
@@ -471,7 +630,11 @@ export default function OrdersPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         title={editingId ? "Edit order" : "Add order"}
-        description={editingId ? "Update this order and save your changes." : "Fill in the details for the new order."}
+        description={
+          editingId
+            ? "Update this order and save your changes."
+            : "Fill in the details for the new order."
+        }
         onSubmit={handleSave}
         submitLabel={editingId ? "Save changes" : "Create order"}
         isSubmitting={isSaving}
@@ -523,7 +686,7 @@ export default function OrdersPage() {
             >
               {ORDER_STATUSES.map((value) => (
                 <option key={value} value={value}>
-                  {STATUS_LABELS[value]}
+                  {ORDER_STATUS_LABELS[value]}
                 </option>
               ))}
             </SelectField>
@@ -535,7 +698,9 @@ export default function OrdersPage() {
               id="order-date"
               type="date"
               value={form.orderDate}
-              onChange={(e) => setForm((f) => ({ ...f, orderDate: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, orderDate: e.target.value }))
+              }
               required
             />
           </FormField>
@@ -544,7 +709,9 @@ export default function OrdersPage() {
               id="order-production-date"
               type="date"
               value={form.productionDate}
-              onChange={(e) => setForm((f) => ({ ...f, productionDate: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, productionDate: e.target.value }))
+              }
             />
           </FormField>
           <FormField label="Delivery date" htmlFor="order-delivery-date">
@@ -552,7 +719,9 @@ export default function OrdersPage() {
               id="order-delivery-date"
               type="date"
               value={form.deliveryDate}
-              onChange={(e) => setForm((f) => ({ ...f, deliveryDate: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, deliveryDate: e.target.value }))
+              }
             />
           </FormField>
         </div>
@@ -562,98 +731,31 @@ export default function OrdersPage() {
           getOptionId={(p) => p.productId}
           getQuantity={(p) => p.quantity}
           setOptionId={(index, productId) =>
-            setForm((f) => ({
-              ...f,
-              products: f.products.map((p, i) => (i === index ? { ...p, productId } : p)),
+            orderProductLines.setLine(index, (product) => ({
+              ...product,
+              productId,
             }))
           }
           setQuantity={(index, quantity) =>
-            setForm((f) => ({
-              ...f,
-              products: f.products.map((p, i) => (i === index ? { ...p, quantity } : p)),
+            orderProductLines.setLine(index, (product) => ({
+              ...product,
+              quantity,
             }))
           }
-          addItem={() =>
-            setForm((f) => ({
-              ...f,
-              products: [
-                ...f.products,
-                { productId: defaultProductId, quantity: 1 },
-              ],
-            }))
-          }
-          removeItem={(index) =>
-            setForm((f) => ({
-              ...f,
-              products: f.products.filter((_, i) => i !== index),
-            }))
-          }
+          addItem={orderProductLines.addItem}
+          removeItem={orderProductLines.removeItem}
           optionLabel="Product"
           quantityLabel="Quantity"
           getAvailableStock={getProductStock}
         />
-        {productionPreview?.hasProductShortages ? (
-          <div className="rounded-2xl bg-[var(--k-surface)] p-4 text-sm shadow-[var(--k-shadow-inset-sm)]">
-            <div className="mb-3">
-              <p className="font-medium">Production required</p>
-              <p className="text-xs text-muted-foreground">
-                Finished product stock is short. These barrels need to be produced before the
-                customer order can continue.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              {productionPreview.products
-                .filter((requirement) => requirement.toProduce > 0)
-                .map((requirement, index) => {
-                  const unit = getProductUnit(requirement.productId)
-                  return (
-                    <div key={`${requirement.productId}-${index}`} className="space-y-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="font-medium">{getProductLabel(requirement.productId)}</span>
-                        <span className="text-xs tabular-nums text-muted-foreground">
-                          {requirement.available} / {requirement.required}
-                          {unit ? ` ${unit}` : ""} in stock
-                        </span>
-                      </div>
-                      <p className="text-xs tabular-nums text-destructive">
-                        Produce {requirement.toProduce}
-                        {unit ? ` ${unit}` : ""}.
-                      </p>
-                    </div>
-                  )
-                })}
-            </div>
-            {productionPreview.itemRequirements.length ? (
-              <div className="mt-4 border-t border-border/60 pt-3">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Raw materials needed
-                </p>
-                <div className="flex flex-col gap-2">
-                  {productionPreview.itemRequirements.map((requirement) => {
-                    const unit = getItemUnit(requirement.itemId)
-                    const insufficient = requirement.available < requirement.required
-                    return (
-                      <div
-                        key={requirement.itemId}
-                        className="flex items-center justify-between gap-3 text-xs"
-                      >
-                        <span>{getItemLabel(requirement.itemId)}</span>
-                        <span
-                          className={`tabular-nums ${
-                            insufficient ? "text-destructive" : "text-muted-foreground"
-                          }`}
-                        >
-                          Need {requirement.required}
-                          {unit ? ` ${unit}` : ""}, have {requirement.available}
-                          {unit ? ` ${unit}` : ""}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : null}
-          </div>
+        {productionPreview ? (
+          <ProductionPreviewPanel
+            preview={productionPreview}
+            getProductLabel={getProductLabel}
+            getProductUnit={getProductUnit}
+            getItemLabel={getItemLabel}
+            getItemUnit={getItemUnit}
+          />
         ) : null}
         <div className="grid grid-cols-3 gap-3">
           <FormField label="Total costs" htmlFor="order-total-cost">
@@ -661,7 +763,7 @@ export default function OrdersPage() {
               id="order-total-cost"
               value={formatPrice(orderTotalCost)}
               readOnly
-              className="tabular-nums bg-muted/40"
+              className="bg-muted/40 tabular-nums"
             />
           </FormField>
           <FormField label="Total sales" htmlFor="order-total-sell">
@@ -669,7 +771,7 @@ export default function OrdersPage() {
               id="order-total-sell"
               value={formatPrice(orderTotalSell)}
               readOnly
-              className="tabular-nums bg-muted/40"
+              className="bg-muted/40 tabular-nums"
             />
           </FormField>
           <FormField label="Profit" htmlFor="order-total-profit">
@@ -677,7 +779,7 @@ export default function OrdersPage() {
               id="order-total-profit"
               value={formatPrice(orderTotalProfit)}
               readOnly
-              className="tabular-nums bg-muted/40"
+              className="bg-muted/40 tabular-nums"
             />
           </FormField>
         </div>

@@ -1,11 +1,7 @@
-import { createHash } from "node:crypto"
 import { watch } from "chokidar"
 
 import type { Low } from "lowdb"
-
-export type DbSyncState = {
-  resources: Record<string, string>
-}
+import { computeDbSyncState } from "../domain/db-sync.ts"
 
 type DbObserver = {
   onReadEnd: (data: Record<string, unknown> | null) => void
@@ -13,26 +9,11 @@ type DbObserver = {
   onWriteEnd: () => void
 }
 
-function hashResource(value: unknown) {
-  return createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 12)
-}
-
-export function computeDbSyncState(data: Record<string, unknown>): DbSyncState {
-  const resources: Record<string, string> = {}
-
-  for (const [key, value] of Object.entries(data)) {
-    if (key === "$schema") continue
-    resources[key] = hashResource(value)
-  }
-
-  return { resources }
-}
-
 export function registerDbSync(
   app: import("@tinyhttp/app").App,
   db: Low<Record<string, unknown>>,
   observer: DbObserver,
-  dbFile: string,
+  dbFile: string
 ) {
   let syncState = computeDbSyncState(db.data)
 

@@ -9,11 +9,19 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
 } from "@tanstack/react-table"
-import { ChevronRightIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import {
+  ChevronRightIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon,
+} from "lucide-react"
 
 import { ColumnFilterInput } from "@/components/data-table/column-filter-input"
 import { ConfirmDeleteDialog } from "@/components/data-table/confirm-delete-dialog"
-import { includesStringFilter } from "@/components/data-table/table-filter-utils"
+import {
+  includesStringFilter,
+  isActiveFilter,
+} from "@/components/data-table/table-filter-utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -27,6 +35,8 @@ import {
 
 interface DataTableProps<T extends { id: string }> {
   data: T[]
+  // TanStack columns are invariant by value type, so callers pass mixed column values.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<T, any>[]
   isLoading?: boolean
   onDelete: (id: string) => Promise<void>
@@ -35,8 +45,6 @@ interface DataTableProps<T extends { id: string }> {
   addLabel?: string
   getRowLabel?: (row: T) => string
   canDelete?: (row: T) => boolean
-  /** Full-width expanded panel (legacy). Prefer renderExpandedRowCells for column alignment. */
-  renderExpandedRow?: (row: T) => React.ReactNode
   /** One cell per data column, aligned with the table header row. */
   renderExpandedRowCells?: (row: T) => (React.ReactNode | null | undefined)[]
   colgroup?: React.ReactNode
@@ -52,15 +60,16 @@ export function DataTable<T extends { id: string }>({
   addLabel = "Add row",
   getRowLabel,
   canDelete,
-  renderExpandedRow,
   renderExpandedRowCells,
   colgroup,
 }: DataTableProps<T>) {
   const [deleting, setDeleting] = React.useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<T | null>(null)
   const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set())
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const expandable = Boolean(renderExpandedRow ?? renderExpandedRowCells)
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const expandable = Boolean(renderExpandedRowCells)
   const expandedCellClassName = "whitespace-normal align-top bg-muted/30 p-2"
   const totalColumns = columns.length + (expandable ? 1 : 0) + 1
 
@@ -78,7 +87,9 @@ export function DataTable<T extends { id: string }>({
 
   const handleRowClick = (e: React.MouseEvent, id: string) => {
     const target = e.target as HTMLElement
-    if (target.closest("button, input, select, textarea, [data-no-row-toggle]")) {
+    if (
+      target.closest("button, input, select, textarea, [data-no-row-toggle]")
+    ) {
       return
     }
     toggleExpanded(id)
@@ -102,7 +113,7 @@ export function DataTable<T extends { id: string }>({
 
   const filteredCount = table.getFilteredRowModel().rows.length
   const totalCount = table.getCoreRowModel().rows.length
-  const hasActiveFilters = columnFilters.some((f) => String(f.value ?? "").trim())
+  const hasActiveFilters = columnFilters.some((f) => isActiveFilter(f.value))
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return
@@ -116,14 +127,14 @@ export function DataTable<T extends { id: string }>({
     <div className="flex flex-col gap-3">
       {onAddClick && (
         <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={onAddClick}>
+          <Button size="sm" variant="neu" onClick={onAddClick}>
             <PlusIcon className="size-3.5" />
             {addLabel}
           </Button>
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="neu-card overflow-hidden rounded-lg">
         <Table>
           {colgroup}
           <TableHeader>
@@ -135,16 +146,22 @@ export function DataTable<T extends { id: string }>({
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   ))}
                   <TableHead className="w-[72px]" />
                 </TableRow>
                 {!isLoading && (
-                  <TableRow className="hover:bg-transparent border-b">
+                  <TableRow className="border-b hover:bg-transparent">
                     {expandable && <TableHead className="w-8 p-1" />}
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={`${header.id}-filter`} className="p-1 align-top">
+                      <TableHead
+                        key={`${header.id}-filter`}
+                        className="p-1 align-top"
+                      >
                         {header.column.getCanFilter() ? (
                           <ColumnFilterInput column={header.column} />
                         ) : null}
@@ -175,8 +192,13 @@ export function DataTable<T extends { id: string }>({
               ))
             ) : filteredCount === 0 ? (
               <TableRow>
-                <TableCell colSpan={totalColumns} className="h-20 text-center text-muted-foreground">
-                  {hasActiveFilters ? "No records match your filters." : "No records found."}
+                <TableCell
+                  colSpan={totalColumns}
+                  className="h-20 text-center text-muted-foreground"
+                >
+                  {hasActiveFilters
+                    ? "No records match your filters."
+                    : "No records found."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -188,7 +210,11 @@ export function DataTable<T extends { id: string }>({
                     <TableRow
                       className={expandable ? "cursor-pointer" : undefined}
                       aria-expanded={expandable ? isExpanded : undefined}
-                      onClick={expandable ? (e) => handleRowClick(e, row.original.id) : undefined}
+                      onClick={
+                        expandable
+                          ? (e) => handleRowClick(e, row.original.id)
+                          : undefined
+                      }
                     >
                       {expandable && (
                         <TableCell className="w-8 px-1 text-muted-foreground">
@@ -200,14 +226,17 @@ export function DataTable<T extends { id: string }>({
                       )}
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </TableCell>
                       ))}
                       <TableCell>
                         <div className="flex items-center justify-end gap-0.5">
                           {onEdit && (
                             <Button
-                              variant="ghost"
+                              variant="neu-icon"
                               size="icon-sm"
                               aria-label="Edit row"
                               onClick={(e) => {
@@ -221,7 +250,7 @@ export function DataTable<T extends { id: string }>({
                           )}
                           {(canDelete?.(row.original) ?? true) && (
                             <Button
-                              variant="ghost"
+                              variant="neu-icon"
                               size="icon-sm"
                               disabled={deleting === row.original.id}
                               aria-label="Delete row"
@@ -240,19 +269,17 @@ export function DataTable<T extends { id: string }>({
                     {expandable && isExpanded && renderExpandedRowCells && (
                       <TableRow className="hover:bg-transparent">
                         <TableCell className="w-8 bg-muted/30" />
-                        {renderExpandedRowCells(row.original).map((cell, index) => (
-                          <TableCell key={index} className={expandedCellClassName}>
-                            {cell}
-                          </TableCell>
-                        ))}
+                        {renderExpandedRowCells(row.original).map(
+                          (cell, index) => (
+                            <TableCell
+                              key={index}
+                              className={expandedCellClassName}
+                            >
+                              {cell}
+                            </TableCell>
+                          )
+                        )}
                         <TableCell className="w-[72px] bg-muted/30" />
-                      </TableRow>
-                    )}
-                    {expandable && isExpanded && !renderExpandedRowCells && renderExpandedRow && (
-                      <TableRow className="hover:bg-transparent">
-                        <TableCell colSpan={totalColumns} className="whitespace-normal bg-muted/30 p-0">
-                          {renderExpandedRow(row.original)}
-                        </TableCell>
                       </TableRow>
                     )}
                   </React.Fragment>

@@ -10,14 +10,6 @@ import { Observer } from "json-server/lib/adapters/observer.js"
 import { Low } from "lowdb"
 import { JSONFile } from "lowdb/node"
 
-import {
-  InsufficientInventoryError,
-  UnknownProductError,
-  reserveInventoryForApprovedOrders,
-  type InventoryEntry,
-  type Order,
-  type Product,
-} from "../lib/reserve-inventory.ts"
 import { registerOrderRoutes } from "./order-routes.ts"
 import { registerDbSync } from "./db-sync.ts"
 
@@ -49,64 +41,23 @@ app
       allowedHeaders: req.headers["access-control-request-headers"]
         ?.split(",")
         .map((header) => header.trim()),
-    })(req, res, next),
+    })(req, res, next)
   )
   .options("*", cors())
 
 registerOrderRoutes(app, db)
 registerDbSync(app, db, observer, DB_FILE)
 
-app.post("/reserve-inventory", async (_req, res) => {
-  try {
-    const result = reserveInventoryForApprovedOrders(
-      db.data.orders as Order[],
-      db.data.products as Product[],
-      db.data.inventory as InventoryEntry[],
-    )
-
-    db.data.inventory = result.inventory
-    db.data.orders = result.orders
-    await db.write()
-
-    res.json({
-      requirements: result.requirements,
-      processedOrderIds: result.processedOrderIds,
-      inventory: result.inventory,
-      orders: result.orders,
-    })
-  } catch (error) {
-    if (error instanceof InsufficientInventoryError) {
-      res.status(409).json({
-        error: error.message,
-        shortages: error.shortages,
-      })
-      return
-    }
-
-    if (error instanceof UnknownProductError) {
-      res.status(400).json({
-        error: error.message,
-        orderId: error.orderId,
-        productId: error.productId,
-      })
-      return
-    }
-
-    throw error
-  }
-})
-
 app.use(jsonServerApp)
 
 const server = app.listen(PORT, () => {
   console.log(`JSON Server started on http://${HOST}:${PORT}`)
-  console.log(`Custom endpoint: http://${HOST}:${PORT}/reserve-inventory`)
 })
 
 server.on("error", (error) => {
   if ("code" in error && error.code === "EADDRINUSE") {
     console.error(
-      `Port ${PORT} is already in use. Stop the existing API with: npm run db:stop`,
+      `Port ${PORT} is already in use. Stop the existing API with: npm run db:stop`
     )
     process.exit(1)
   }
