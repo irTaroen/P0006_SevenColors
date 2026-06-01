@@ -70,7 +70,11 @@ export function DataTable<T extends { id: string }>({
     []
   )
   const expandable = Boolean(renderExpandedRowCells)
-  const expandedCellClassName = "whitespace-normal align-top bg-muted/30 p-2"
+  const expandedCellClassName = "whitespace-normal align-top bg-muted/30 px-4 py-2"
+  const headClassName = "h-auto px-4 py-1.5"
+  const filterClassName = "px-3 py-1 align-top"
+  const cellClassName = "px-4 pt-0 pb-1.5"
+  const actionCellClassName = "px-2 pt-0 pb-1"
   const totalColumns = columns.length + (expandable ? 1 : 0) + 1
 
   const toggleExpanded = (id: string) => {
@@ -134,16 +138,16 @@ export function DataTable<T extends { id: string }>({
         </div>
       )}
 
-      <div className="neu-card overflow-hidden rounded-lg">
+      <div className="neu-card overflow-hidden rounded-2xl p-4 md:p-5">
         <Table>
           {colgroup}
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <React.Fragment key={headerGroup.id}>
                 <TableRow className="hover:bg-transparent">
-                  {expandable && <TableHead className="w-8" />}
+                  {expandable && <TableHead className="w-8 px-2 py-1" />}
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className={headClassName}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -152,22 +156,22 @@ export function DataTable<T extends { id: string }>({
                           )}
                     </TableHead>
                   ))}
-                  <TableHead className="w-[72px]" />
+                  <TableHead className="w-[72px] px-2 py-1" />
                 </TableRow>
                 {!isLoading && (
                   <TableRow className="border-b hover:bg-transparent">
-                    {expandable && <TableHead className="w-8 p-1" />}
+                    {expandable && <TableHead className="w-8 px-2 py-1" />}
                     {headerGroup.headers.map((header) => (
                       <TableHead
                         key={`${header.id}-filter`}
-                        className="p-1 align-top"
+                        className={filterClassName}
                       >
                         {header.column.getCanFilter() ? (
                           <ColumnFilterInput column={header.column} />
                         ) : null}
                       </TableHead>
                     ))}
-                    <TableHead className="w-[72px] p-1" />
+                    <TableHead className="w-[72px] px-2 py-1" />
                   </TableRow>
                 )}
               </React.Fragment>
@@ -178,23 +182,23 @@ export function DataTable<T extends { id: string }>({
               Array.from({ length: 4 }).map((_, i) => (
                 <TableRow key={i}>
                   {expandable && (
-                    <TableCell>
+                    <TableCell className="px-2 pt-0 pb-1.5">
                       <Skeleton className="size-4" />
                     </TableCell>
                   )}
                   {columns.map((_, j) => (
-                    <TableCell key={j}>
+                    <TableCell key={j} className={cellClassName}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
-                  <TableCell />
+                  <TableCell className={actionCellClassName} />
                 </TableRow>
               ))
             ) : filteredCount === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={totalColumns}
-                  className="h-20 text-center text-muted-foreground"
+                  className="h-24 px-4 py-6 text-center text-muted-foreground"
                 >
                   {hasActiveFilters
                     ? "No records match your filters."
@@ -217,7 +221,7 @@ export function DataTable<T extends { id: string }>({
                       }
                     >
                       {expandable && (
-                        <TableCell className="w-8 px-1 text-muted-foreground">
+                        <TableCell className="w-8 px-2 pt-0 pb-1.5 text-muted-foreground">
                           <ChevronRightIcon
                             className={`size-3.5 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
                             aria-hidden
@@ -225,14 +229,14 @@ export function DataTable<T extends { id: string }>({
                         </TableCell>
                       )}
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell key={cell.id} className={cellClassName}>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
                           )}
                         </TableCell>
                       ))}
-                      <TableCell>
+                      <TableCell className={actionCellClassName}>
                         <div className="flex items-center justify-end gap-0.5">
                           {onEdit && (
                             <Button
@@ -268,7 +272,7 @@ export function DataTable<T extends { id: string }>({
                     </TableRow>
                     {expandable && isExpanded && renderExpandedRowCells && (
                       <TableRow className="hover:bg-transparent">
-                        <TableCell className="w-8 bg-muted/30" />
+                        <TableCell className="w-8 bg-muted/30 px-2" />
                         {renderExpandedRowCells(row.original).map(
                           (cell, index) => (
                             <TableCell
@@ -279,7 +283,7 @@ export function DataTable<T extends { id: string }>({
                             </TableCell>
                           )
                         )}
-                        <TableCell className="w-[72px] bg-muted/30" />
+                        <TableCell className="w-[72px] bg-muted/30 px-2" />
                       </TableRow>
                     )}
                   </React.Fragment>

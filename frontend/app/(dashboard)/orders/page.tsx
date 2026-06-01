@@ -1,17 +1,23 @@
 "use client"
 
 import * as React from "react"
-import { createColumnHelper } from "@tanstack/react-table"
-import { ShoppingCartIcon } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 
-import { DashboardPageHeader } from "@/components/dashboard/page-header"
-import { DataTable } from "@/components/data-table/data-table"
-import { ExpandedDetailColumn } from "@/components/data-table/expanded-detail-column"
+import { ConfirmDeleteDialog } from "@/components/data-table/confirm-delete-dialog"
+import {
+  OrdersKpiCard,
+  OrdersPanel,
+  PeriodToggle,
+  StatusFilters,
+} from "@/components/features/orders"
+import { ProductionPreviewPanel } from "@/components/features/orders/production-preview-panel"
 import { FormField } from "@/components/data-table/form-field"
 import { LineItemsEditor } from "@/components/forms/line-items-editor"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { SelectField } from "@/components/forms/select-field"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useLineItemsField } from "@/hooks/use-line-items-field"
 import {
   createResource,
@@ -19,16 +25,30 @@ import {
   fetchResource,
   updateResource,
 } from "@/lib/api"
-import { useResourceSync } from "@/providers"
+import { getProductAvailableStock } from "@/lib/inventory-rows"
+import type { InventoryEntry as InventoryRecord } from "@/lib/inventory-rows"
 import {
-  getOrderStatusColor,
-  getOrderStatusLabel,
+  buildOrderViews,
+  computeOrderKpis,
+  filterOrdersByColumns,
+  filterOrdersByPeriod,
+  filterOrdersByStatus,
+  formatOrderCurrency,
+  formatOrderDisplayDate,
+  getFilterCounts,
+  sortOrders,
+  type Order,
+  type OrderFilterKey,
+  type OrderSortColumn,
+  type OrderSortDirection,
+  type OrderView,
+} from "@/lib/orders-dashboard"
+import {
   normalizeOrderStatus,
   ORDER_STATUS_LABELS,
   ORDER_STATUSES,
 } from "@/lib/order-status"
 import {
-  getOrderTypeLabel,
   normalizeOrderType,
   ORDER_TYPE_LABELS,
   ORDER_TYPES,
@@ -39,29 +59,11 @@ import {
   computeOrderTotalPrice,
   formatPrice,
 } from "@/lib/pricing"
-import { getProductAvailableStock } from "@/lib/inventory-rows"
-import type { InventoryEntry as InventoryRecord } from "@/lib/inventory-rows"
 import { getProductsForClient } from "@/lib/product-catalog"
-import {
-  getProductionRequirementPreview,
-  type ProductionRequirementPreview,
-} from "@/lib/reserve-inventory"
+import { getProductionRequirementPreview } from "@/lib/reserve-inventory"
+import { useResourceSync } from "@/providers"
 
 type OrderProduct = { productId: string; quantity: number }
-
-type Order = {
-  id: string
-  clientId: string
-  orderDate: string
-  productionDate: string
-  deliveryDate: string
-  status: string
-  type: OrderType
-  sourceOrderId?: string
-  productionApplied?: boolean
-  totalPrice: number
-  products: OrderProduct[]
-}
 
 type Client = { id: string; name: string }
 type Item = { id: string; name: string; unit: string; buyPrice: number }
@@ -76,8 +78,6 @@ type Product = {
 
 type OrderForm = Omit<Order, "id">
 
-const columnHelper = createColumnHelper<Order>()
-
 const EMPTY_FORM: OrderForm = {
   clientId: "",
   orderDate: new Date().toISOString().split("T")[0],
@@ -87,181 +87,6 @@ const EMPTY_FORM: OrderForm = {
   type: "external",
   totalPrice: 0,
   products: [],
-}
-
-function formatOrderDate(value?: string) {
-  return value?.trim() ? value : "—"
-}
-
-const ORDERS_TABLE_COLGROUP = (
-  <colgroup>
-    <col className="w-8" />
-    <col style={{ width: "14%" }} />
-    <col style={{ width: "10%" }} />
-    <col style={{ width: "9%" }} />
-    <col style={{ width: "9%" }} />
-    <col style={{ width: "9%" }} />
-    <col style={{ width: "12%" }} />
-    <col />
-    <col style={{ width: "6.5rem" }} />
-    <col className="w-[72px]" />
-  </colgroup>
-)
-
-function buildOrderExpandedCells(
-  lines: OrderProduct[],
-  products: Product[]
-): (React.ReactNode | null)[] {
-  if (!lines.length) {
-    return [
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      <p key="empty-order-products" className="text-xs text-muted-foreground">
-        No products on this order.
-      </p>,
-      null,
-    ]
-  }
-
-  const rows = lines.map((line, index) => {
-    const product = products.find((p) => p.id === line.productId)
-    const linePrice = (product?.sellPrice ?? 0) * line.quantity
-    return {
-      key: `${line.productId}-${index}`,
-      name: product?.name ?? line.productId,
-      quantity: line.quantity,
-      linePrice,
-    }
-  })
-
-  return [
-    null,
-    null,
-    null,
-    null,
-    null,
-    <ExpandedDetailColumn key="qty" label="Quantity" align="right">
-      {rows.map((row) => (
-        <span
-          key={row.key}
-          className="text-xs text-muted-foreground tabular-nums"
-        >
-          {row.quantity}
-        </span>
-      ))}
-    </ExpandedDetailColumn>,
-    <ExpandedDetailColumn key="product" label="Product">
-      {rows.map((row) => (
-        <span
-          key={row.key}
-          className="block min-w-0 truncate text-xs font-medium"
-        >
-          {row.name}
-        </span>
-      ))}
-    </ExpandedDetailColumn>,
-    <ExpandedDetailColumn key="price" label="Line price" align="right">
-      {rows.map((row) => (
-        <span
-          key={row.key}
-          className="text-xs text-muted-foreground tabular-nums"
-        >
-          {formatPrice(row.linePrice)}
-        </span>
-      ))}
-    </ExpandedDetailColumn>,
-  ]
-}
-
-function ProductionPreviewPanel({
-  preview,
-  getProductLabel,
-  getProductUnit,
-  getItemLabel,
-  getItemUnit,
-}: {
-  preview: ProductionRequirementPreview
-  getProductLabel: (productId: string) => string
-  getProductUnit: (productId: string) => string | undefined
-  getItemLabel: (itemId: string) => string
-  getItemUnit: (itemId: string) => string | undefined
-}) {
-  if (!preview.hasProductShortages) return null
-
-  return (
-    <div className="neu-card-inset-sm rounded-2xl p-4 text-sm">
-      <div className="mb-3">
-        <p className="font-medium">Production required</p>
-        <p className="text-xs text-muted-foreground">
-          Finished product stock is short. These barrels need to be produced
-          before the customer order can continue.
-        </p>
-      </div>
-      <div className="flex flex-col gap-3">
-        {preview.products
-          .filter((requirement) => requirement.toProduce > 0)
-          .map((requirement, index) => {
-            const unit = getProductUnit(requirement.productId)
-            return (
-              <div
-                key={`${requirement.productId}-${index}`}
-                className="space-y-1"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium">
-                    {getProductLabel(requirement.productId)}
-                  </span>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {requirement.available} / {requirement.required}
-                    {unit ? ` ${unit}` : ""} in stock
-                  </span>
-                </div>
-                <p className="text-xs text-destructive tabular-nums">
-                  Produce {requirement.toProduce}
-                  {unit ? ` ${unit}` : ""}.
-                </p>
-              </div>
-            )
-          })}
-      </div>
-      {preview.itemRequirements.length ? (
-        <div className="mt-4 border-t border-border/60 pt-3">
-          <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Raw materials needed
-          </p>
-          <div className="flex flex-col gap-2">
-            {preview.itemRequirements.map((requirement) => {
-              const unit = getItemUnit(requirement.itemId)
-              const insufficient = requirement.available < requirement.required
-              return (
-                <div
-                  key={requirement.itemId}
-                  className="flex items-center justify-between gap-3 text-xs"
-                >
-                  <span>{getItemLabel(requirement.itemId)}</span>
-                  <span
-                    className={`tabular-nums ${
-                      insufficient
-                        ? "text-destructive"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    Need {requirement.required}
-                    {unit ? ` ${unit}` : ""}, have {requirement.available}
-                    {unit ? ` ${unit}` : ""}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  )
 }
 
 export default function OrdersPage() {
@@ -278,6 +103,22 @@ export default function OrdersPage() {
   const [form, setForm] = React.useState<OrderForm>(EMPTY_FORM)
   const [isSaving, setIsSaving] = React.useState(false)
   const [saveError, setSaveError] = React.useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<OrderView | null>(null)
+  const [deletingId, setDeletingId] = React.useState<string | null>(null)
+
+  const [openRows, setOpenRows] = React.useState<Set<string>>(new Set())
+  const [activeFilter, setActiveFilter] = React.useState<OrderFilterKey>("all")
+  const [periodOffset, setPeriodOffset] = React.useState(0)
+  const [columnFilters, setColumnFilters] = React.useState({
+    order: "",
+    client: "",
+  })
+  const [sortColumn, setSortColumn] = React.useState<OrderSortColumn | null>(
+    null
+  )
+  const [sortDirection, setSortDirection] =
+    React.useState<OrderSortDirection | null>(null)
+
   const syncToken = useResourceSync(
     "orders",
     "clients",
@@ -316,6 +157,53 @@ export default function OrdersPage() {
       .finally(() => setIsLoading(false))
   }, [syncToken])
 
+  const orderViews = React.useMemo(
+    () => buildOrderViews(data, clients, products, inventoryRecords),
+    [data, clients, products, inventoryRecords]
+  )
+
+  const periodOrders = React.useMemo(
+    () => filterOrdersByPeriod(orderViews, periodOffset),
+    [orderViews, periodOffset]
+  )
+
+  const kpis = React.useMemo(
+    () => computeOrderKpis(periodOrders),
+    [periodOrders]
+  )
+
+  const filterCounts = React.useMemo(
+    () => getFilterCounts(periodOrders),
+    [periodOrders]
+  )
+
+  const visibleOrders = React.useMemo(() => {
+    let result = filterOrdersByStatus(periodOrders, activeFilter)
+    result = filterOrdersByColumns(result, columnFilters)
+    return sortOrders(result, sortColumn, sortDirection)
+  }, [periodOrders, activeFilter, columnFilters, sortColumn, sortDirection])
+
+  const handleSort = (col: OrderSortColumn) => {
+    if (sortColumn !== col) {
+      setSortColumn(col)
+      setSortDirection("asc")
+    } else if (sortDirection === "asc") {
+      setSortDirection("desc")
+    } else {
+      setSortColumn(null)
+      setSortDirection(null)
+    }
+  }
+
+  const toggleRow = (id: string) => {
+    setOpenRows((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const openCreate = () => {
     setEditingId(null)
     setSaveError(null)
@@ -327,18 +215,18 @@ export default function OrdersPage() {
     setDialogOpen(true)
   }
 
-  const openEdit = (order: Order) => {
+  const openEdit = (order: OrderView) => {
     setEditingId(order.id)
     setSaveError(null)
     setForm({
-      clientId: order.clientId,
-      orderDate: order.orderDate,
-      productionDate: order.productionDate ?? "",
-      deliveryDate: order.deliveryDate ?? "",
-      status: normalizeOrderStatus(order.status) as OrderForm["status"],
-      type: normalizeOrderType(order.type),
-      products: order.products.map((p) => ({ ...p })),
-      totalPrice: order.totalPrice,
+      clientId: order.order.clientId,
+      orderDate: order.order.orderDate,
+      productionDate: order.order.productionDate ?? "",
+      deliveryDate: order.order.deliveryDate ?? "",
+      status: normalizeOrderStatus(order.order.status) as OrderForm["status"],
+      type: normalizeOrderType(order.order.type),
+      products: order.order.products.map((p) => ({ ...p })),
+      totalPrice: order.order.totalPrice,
     })
     setDialogOpen(true)
   }
@@ -367,26 +255,22 @@ export default function OrdersPage() {
     }
   }
 
-  const handleDelete = React.useCallback(
-    async (id: string) => {
-      await deleteResource("orders", id)
-      await refreshOrdersAndInventory()
-    },
-    [refreshOrdersAndInventory]
-  )
+  const getOrderLabel = (order: OrderView) =>
+    `Order ${order.id} for ${order.clientName} (${formatOrderDisplayDate(order.orderDate)})`
 
-  const resolveProducts = React.useCallback(
-    (orderProducts: OrderProduct[]) => {
-      if (!orderProducts?.length) return "—"
-      return orderProducts
-        .map((op) => {
-          const p = products.find((x) => x.id === op.productId)
-          return `${p?.name ?? op.productId} ×${op.quantity}`
-        })
-        .join(", ")
-    },
-    [products]
-  )
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeletingId(deleteTarget.id)
+    await deleteResource("orders", deleteTarget.id)
+    await refreshOrdersAndInventory()
+    setDeletingId(null)
+    setDeleteTarget(null)
+    setOpenRows((prev) => {
+      const next = new Set(prev)
+      next.delete(deleteTarget.id)
+      return next
+    })
+  }
 
   const productOptions = React.useMemo(() => {
     const available = getProductsForClient(products, form.clientId)
@@ -489,142 +373,126 @@ export default function OrdersPage() {
 
   const orderTotalProfit = orderTotalSell - orderTotalCost
 
-  const columns = React.useMemo(
-    () => [
-      columnHelper.accessor("clientId", {
-        header: "Client",
-        meta: {
-          filterText: (row) =>
-            clients.find((c) => c.id === row.clientId)?.name ??
-            row.clientId ??
-            "",
-        },
-        cell: ({ getValue }) => {
-          const client = clients.find((c) => c.id === getValue())
-          return (
-            <span className="font-medium">
-              {client?.name ?? getValue() ?? "—"}
-            </span>
-          )
-        },
-      }),
-      columnHelper.accessor("type", {
-        header: "Type",
-        meta: {
-          filterText: (row) => getOrderTypeLabel(row.type),
-        },
-        cell: ({ getValue }) => (
-          <span className="text-xs font-medium capitalize">
-            {getOrderTypeLabel(getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("orderDate", {
-        header: "Order date",
-        cell: ({ getValue }) => (
-          <span className="text-muted-foreground tabular-nums">
-            {formatOrderDate(getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("productionDate", {
-        header: "Production date",
-        cell: ({ getValue }) => (
-          <span className="text-muted-foreground tabular-nums">
-            {formatOrderDate(getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("deliveryDate", {
-        header: "Delivery date",
-        cell: ({ getValue }) => (
-          <span className="text-muted-foreground tabular-nums">
-            {formatOrderDate(getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("status", {
-        header: "Status",
-        meta: {
-          filterText: (row) => getOrderStatusLabel(row.status),
-        },
-        cell: ({ getValue }) => {
-          const status = getValue()
-          return (
-            <span
-              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getOrderStatusColor(status)}`}
-            >
-              {getOrderStatusLabel(status)}
-            </span>
-          )
-        },
-      }),
-      columnHelper.accessor("products", {
-        header: "Products",
-        meta: {
-          filterText: (row) => resolveProducts(row.products),
-        },
-        cell: ({ getValue }) => (
-          <span
-            className="block min-w-0 truncate text-xs text-muted-foreground"
-            title={resolveProducts(getValue())}
-          >
-            {resolveProducts(getValue())}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("totalPrice", {
-        header: () => <span className="block text-right">Total price</span>,
-        meta: {
-          filterText: (row) => {
-            const total =
-              row.totalPrice ?? computeOrderTotalPrice(row.products, products)
-            return `${formatPrice(total)} ${total}`
-          },
-        },
-        cell: ({ row, getValue }) => (
-          <span className="block text-right font-medium tabular-nums">
-            {formatPrice(
-              getValue() ??
-                computeOrderTotalPrice(row.original.products, products)
-            )}
-          </span>
-        ),
-      }),
-    ],
-    [clients, resolveProducts, products]
-  )
-
-  const renderExpandedRowCells = React.useCallback(
-    (order: Order) => buildOrderExpandedCells(order.products, products),
-    [products]
-  )
-
-  const getOrderLabel = (order: Order) => {
-    const client = clients.find((c) => c.id === order.clientId)
-    return `Order for ${client?.name ?? order.clientId} (${formatOrderDate(order.orderDate)})`
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-5">
+        <Skeleton className="h-20 w-full max-w-xl rounded-2xl" />
+        <div className="grid grid-cols-4 gap-4">
+          <Skeleton className="h-[88px] rounded-[20px]" />
+          <Skeleton className="h-[88px] rounded-[20px]" />
+          <Skeleton className="h-[88px] rounded-[20px]" />
+          <Skeleton className="h-[88px] rounded-[20px]" />
+        </div>
+        <Skeleton className="h-[420px] rounded-[22px]" />
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <DashboardPageHeader
-        icon={ShoppingCartIcon}
-        title="Orders"
-        description="Customer orders. Click a row to expand its line items; use the edit icon to change details."
+    <div className="flex flex-col gap-5">
+      <div className="animate-fade-up">
+        <h2
+          className="mb-1.5 text-[28px] font-bold tracking-[-0.6px]"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Orders{" "}
+          <span
+            className="italic"
+            style={{ color: "var(--color-cloud-deep)" }}
+          >
+            overview
+          </span>
+        </h2>
+        <p
+          className="max-w-2xl text-[13px] leading-relaxed"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          Click an order to expand line items. Orders with stock shortages or
+          pending approval need manual attention.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="animate-fade-up-d1">
+          <OrdersKpiCard label="Total orders" value={kpis.totalOrders} />
+        </div>
+        <div className="animate-fade-up-d1">
+          <OrdersKpiCard
+            label="Pending approval"
+            value={kpis.pendingCount}
+            highlightColor={
+              kpis.pendingCount > 0 ? "var(--color-amber-fg)" : undefined
+            }
+            pulse={kpis.pendingCount > 0}
+          />
+        </div>
+        <div className="animate-fade-up-d2">
+          <OrdersKpiCard
+            label="Insufficient stock"
+            value={kpis.blockedCount}
+            highlightColor={
+              kpis.blockedCount > 0 ? "var(--color-red-fg)" : undefined
+            }
+            pulse={kpis.blockedCount > 0}
+          />
+        </div>
+        <div className="animate-fade-up-d2">
+          <OrdersKpiCard
+            label="Approved value"
+            value={formatOrderCurrency(kpis.approvedValue)}
+          />
+        </div>
+      </div>
+
+      <div className="animate-fade-up-d2">
+        <StatusFilters
+          active={activeFilter}
+          onChange={setActiveFilter}
+          counts={filterCounts}
+        />
+      </div>
+
+      <div className="animate-fade-up-d3 flex flex-wrap items-center justify-start gap-3">
+        <PeriodToggle offset={periodOffset} onChange={setPeriodOffset} />
+        <Button variant="neu" onClick={openCreate}>
+          <PlusIcon />
+          Add order
+        </Button>
+      </div>
+
+      <div className="animate-fade-up-d3">
+        <OrdersPanel
+          orders={visibleOrders}
+          openRows={openRows}
+          onToggleRow={toggleRow}
+          onEdit={openEdit}
+          onDelete={setDeleteTarget}
+          deletingId={deletingId}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          columnFilters={columnFilters}
+          onColumnFiltersChange={setColumnFilters}
+        />
+      </div>
+
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        itemName={deleteTarget ? getOrderLabel(deleteTarget) : undefined}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deletingId !== null}
       />
 
-      <DataTable
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        onDelete={handleDelete}
-        onAddClick={openCreate}
-        onEdit={openEdit}
-        addLabel="Add order"
-        getRowLabel={getOrderLabel}
-        colgroup={ORDERS_TABLE_COLGROUP}
-        renderExpandedRowCells={renderExpandedRowCells}
-      />
+      <p
+        className="mx-auto max-w-xl text-center text-[11px] leading-relaxed"
+        style={{ color: "var(--color-text-tertiary)" }}
+      >
+        Click a row to show order lines. Blocked orders highlight which products
+        are short on stock.
+      </p>
 
       <ResourceFormDialog
         open={dialogOpen}

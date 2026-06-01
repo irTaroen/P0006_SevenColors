@@ -1,15 +1,19 @@
 "use client"
 
 import * as React from "react"
-import { createColumnHelper } from "@tanstack/react-table"
-import { ArchiveIcon } from "lucide-react"
+import { Box, Check, Clock, Layers, Warehouse } from "lucide-react"
 
-import { DashboardPageHeader } from "@/components/dashboard/page-header"
-import { DataTable } from "@/components/data-table/data-table"
+import {
+  CategoryTile,
+  InventoryLegend,
+  RestockPanel,
+  SummaryCard,
+} from "@/components/features/inventory"
 import { FormField } from "@/components/data-table/form-field"
 import { ResourceFormDialog } from "@/components/data-table/resource-form-dialog"
 import { Input } from "@/components/ui/input"
 import { NumberInput } from "@/components/ui/number-input"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   createResource,
   deleteResource,
@@ -17,17 +21,18 @@ import {
   updateResource,
 } from "@/lib/api"
 import {
+  buildBarItems,
+  computeInventoryKpis,
+  formatInventoryNumber,
+  getLowStockItems,
+  splitByType,
+} from "@/lib/inventory-dashboard"
+import {
   buildInventoryRows,
   isVirtualInventoryId,
   type InventoryEntry,
 } from "@/lib/inventory-rows"
 import { useResourceSync } from "@/providers"
-import {
-  getInventoryStockStatus,
-  getInventoryTotal,
-  INVENTORY_STATUS_COLORS,
-  INVENTORY_STATUS_LABELS,
-} from "@/lib/inventory-status"
 
 type InventoryRecord = Omit<InventoryEntry, "persisted">
 
@@ -35,12 +40,6 @@ type Item = { id: string; name: string; unit: string; minimumInventory: number }
 type Product = { id: string; name: string; unit: string }
 
 type InventoryForm = Omit<InventoryRecord, "id">
-
-const columnHelper = createColumnHelper<InventoryEntry>()
-
-function formatAmount(value: number, unit?: string) {
-  return unit ? `${value} ${unit}` : String(value)
-}
 
 const EMPTY_FORM: InventoryForm = {
   type: "item",
@@ -70,6 +69,22 @@ export default function InventoryPage() {
     [items, products, inventoryRecords]
   )
 
+  const barItems = React.useMemo(
+    () => buildBarItems(data, items, products),
+    [data, items, products]
+  )
+
+  const { rawMaterials, finishedProducts } = React.useMemo(
+    () => splitByType(barItems),
+    [barItems]
+  )
+
+  const kpis = React.useMemo(() => computeInventoryKpis(barItems), [barItems])
+  const lowStockItems = React.useMemo(
+    () => getLowStockItems(barItems),
+    [barItems]
+  )
+
   React.useEffect(() => {
     Promise.all([
       fetchResource<InventoryRecord>("inventory"),
@@ -93,6 +108,34 @@ export default function InventoryPage() {
       })
       .finally(() => setIsLoading(false))
   }, [syncToken])
+
+  const getItem = React.useCallback(
+    (itemId: string | null | undefined) =>
+      itemId ? items.find((i) => i.id === itemId) : undefined,
+    [items]
+  )
+
+  const getProduct = React.useCallback(
+    (productId: string | null | undefined) =>
+      productId ? products.find((p) => p.id === productId) : undefined,
+    [products]
+  )
+
+  const getEntryName = React.useCallback(
+    (entry: InventoryEntry) => {
+      if (entry.type === "product" || entry.productId) {
+        return getProduct(entry.productId)?.name ?? entry.productId ?? "—"
+      }
+      return getItem(entry.itemId)?.name ?? entry.itemId ?? "—"
+    },
+    [getItem, getProduct]
+  )
+
+  const getEntryTypeLabel = React.useCallback(
+    (entry: InventoryEntry) =>
+      entry.type === "product" || entry.productId ? "Product" : "Item",
+    []
+  )
 
   const openEdit = (entry: InventoryEntry) => {
     setEditingId(entry.id)
@@ -167,234 +210,6 @@ export default function InventoryPage() {
     }
   }
 
-  const handleDelete = React.useCallback(async (id: string) => {
-    if (isVirtualInventoryId(id)) return
-    await deleteResource("inventory", id)
-    setInventoryRecords((prev) => prev.filter((entry) => entry.id !== id))
-  }, [])
-
-  const getItem = React.useCallback(
-    (itemId: string | null | undefined) =>
-      itemId ? items.find((i) => i.id === itemId) : undefined,
-    [items]
-  )
-
-  const getProduct = React.useCallback(
-    (productId: string | null | undefined) =>
-      productId ? products.find((p) => p.id === productId) : undefined,
-    [products]
-  )
-
-  const getEntryName = React.useCallback(
-    (entry: InventoryEntry) => {
-      if (entry.type === "product" || entry.productId) {
-        return getProduct(entry.productId)?.name ?? entry.productId ?? "—"
-      }
-      return getItem(entry.itemId)?.name ?? entry.itemId ?? "—"
-    },
-    [getItem, getProduct]
-  )
-
-  const getEntryUnit = React.useCallback(
-    (entry: InventoryEntry) => {
-      if (entry.type === "product" || entry.productId) {
-        return getProduct(entry.productId)?.unit
-      }
-      return getItem(entry.itemId)?.unit
-    },
-    [getItem, getProduct]
-  )
-
-  const getEntryMinimum = React.useCallback(
-    (entry: InventoryEntry) => {
-      if (entry.type === "product" || entry.productId) return 0
-      return getItem(entry.itemId)?.minimumInventory ?? 0
-    },
-    [getItem]
-  )
-
-  const getEntryTypeLabel = React.useCallback(
-    (entry: InventoryEntry) =>
-      entry.type === "product" || entry.productId ? "Product" : "Item",
-    []
-  )
-
-  const formatQuantityFilterText = React.useCallback(
-    (entry: InventoryEntry, value: number) => {
-      const unit = getEntryUnit(entry) ?? ""
-      return `${value} ${formatAmount(value, unit)}`.trim()
-    },
-    [getEntryUnit]
-  )
-
-  const columns = React.useMemo(
-    () => [
-      columnHelper.accessor(
-        (row) => `${getEntryTypeLabel(row)} ${getEntryName(row)}`,
-        {
-          id: "name",
-          header: "Item / Product",
-          meta: {
-            filterPlaceholder: "Search name…",
-            filterText: (row) =>
-              `${getEntryTypeLabel(row)} ${getEntryName(row)}`,
-          },
-          cell: ({ row }) => {
-            const isProduct =
-              row.original.type === "product" || !!row.original.productId
-            return (
-              <div className="flex flex-col gap-0.5">
-                <span className="font-medium">
-                  {getEntryName(row.original)}
-                </span>
-                <span className="text-[10px] tracking-wide text-muted-foreground uppercase">
-                  {isProduct ? "Product" : "Item"}
-                </span>
-              </div>
-            )
-          },
-        }
-      ),
-      columnHelper.accessor("available", {
-        header: "Available",
-        meta: {
-          filterPlaceholder: "Search available…",
-          filterText: (row) => {
-            const status = getInventoryStockStatus(
-              row.available,
-              getEntryMinimum(row)
-            )
-            return `${formatQuantityFilterText(row, row.available)} ${INVENTORY_STATUS_LABELS[status]}`
-          },
-        },
-        cell: ({ row, getValue }) => {
-          const unit = getEntryUnit(row.original)
-          return (
-            <span className="tabular-nums">
-              {formatAmount(getValue() ?? 0, unit)}
-            </span>
-          )
-        },
-      }),
-      columnHelper.accessor("reserved", {
-        header: "Reserved",
-        meta: {
-          filterPlaceholder: "Search reserved…",
-          filterText: (row) => formatQuantityFilterText(row, row.reserved),
-        },
-        cell: ({ row, getValue }) => (
-          <span className="tabular-nums">
-            {formatAmount(getValue() ?? 0, getEntryUnit(row.original))}
-          </span>
-        ),
-      }),
-      columnHelper.accessor("inUse", {
-        header: "In use",
-        meta: {
-          filterPlaceholder: "Search in use…",
-          filterText: (row) => formatQuantityFilterText(row, row.inUse),
-        },
-        cell: ({ row, getValue }) => (
-          <span className="tabular-nums">
-            {formatAmount(getValue() ?? 0, getEntryUnit(row.original))}
-          </span>
-        ),
-      }),
-      columnHelper.accessor((row) => getInventoryTotal(row), {
-        id: "total",
-        header: "Total",
-        meta: {
-          filterPlaceholder: "Search total…",
-          filterText: (row) =>
-            formatQuantityFilterText(row, getInventoryTotal(row)),
-        },
-        cell: ({ row }) => (
-          <span className="font-medium tabular-nums">
-            {formatAmount(
-              getInventoryTotal(row.original),
-              getEntryUnit(row.original)
-            )}
-          </span>
-        ),
-      }),
-      columnHelper.accessor(
-        (row) =>
-          INVENTORY_STATUS_LABELS[
-            getInventoryStockStatus(row.available, getEntryMinimum(row))
-          ],
-        {
-          id: "status",
-          header: "Status",
-          meta: {
-            filterPlaceholder: "Search status…",
-            filterText: (row) => {
-              const status = getInventoryStockStatus(
-                row.available,
-                getEntryMinimum(row)
-              )
-              return `${INVENTORY_STATUS_LABELS[status]} ${status.replace(/_/g, " ")}`
-            },
-          },
-          cell: ({ row }) => {
-            const minimum = getEntryMinimum(row.original)
-            const status = getInventoryStockStatus(
-              row.original.available,
-              minimum
-            )
-            return (
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${INVENTORY_STATUS_COLORS[status]}`}
-                title={
-                  status === "low" && minimum > 0
-                    ? `Available stock is at or below minimum of ${minimum}`
-                    : undefined
-                }
-              >
-                {INVENTORY_STATUS_LABELS[status]}
-              </span>
-            )
-          },
-        }
-      ),
-      columnHelper.accessor((row) => getEntryMinimum(row), {
-        id: "minimumInventory",
-        header: "Minimum",
-        meta: {
-          filterPlaceholder: "Search minimum…",
-          filterText: (row) => {
-            const minimum = getEntryMinimum(row)
-            if (!minimum) return "— n/a product"
-            return formatQuantityFilterText(row, minimum)
-          },
-        },
-        cell: ({ row }) => {
-          const minimum = getEntryMinimum(row.original)
-          if (!minimum) return <span className="text-muted-foreground">—</span>
-          return (
-            <span className="text-muted-foreground tabular-nums">
-              {formatAmount(minimum, getEntryUnit(row.original))}
-            </span>
-          )
-        },
-      }),
-      columnHelper.accessor("warehouse", {
-        header: "Warehouse",
-        meta: {
-          filterPlaceholder: "Search warehouse…",
-          filterText: (row) => row.warehouse ?? "",
-        },
-        cell: ({ getValue }) => getValue(),
-      }),
-    ],
-    [
-      formatQuantityFilterText,
-      getEntryMinimum,
-      getEntryName,
-      getEntryTypeLabel,
-      getEntryUnit,
-    ]
-  )
-
   const selectedUnit =
     form.type === "product"
       ? getProduct(form.productId)?.unit
@@ -404,23 +219,108 @@ export default function InventoryPage() {
     ? data.find((row) => row.id === editingId)
     : undefined
 
-  return (
-    <div className="flex flex-col gap-6 p-6">
-      <DashboardPageHeader
-        icon={ArchiveIcon}
-        title="Inventory"
-        description="Raw materials and finished products across available, reserved, and in-use amounts. Use the column filters to search any field."
-      />
+  const utilizationSublabel =
+    kpis.totalCapacity > 0
+      ? `${formatInventoryNumber(kpis.totalAvailable + kpis.totalReserved)} / ${formatInventoryNumber(kpis.totalCapacity)} units`
+      : "—"
 
-      <DataTable
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        onDelete={handleDelete}
-        onEdit={openEdit}
-        canDelete={(row) => row.persisted}
-        getRowLabel={getEntryName}
-      />
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-5">
+        <Skeleton className="h-20 w-full max-w-xl rounded-2xl" />
+        <div className="grid grid-cols-3 gap-4">
+          <Skeleton className="h-[92px] rounded-[20px]" />
+          <Skeleton className="h-[92px] rounded-[20px]" />
+          <Skeleton className="h-[92px] rounded-[20px]" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Skeleton className="h-96 rounded-[22px]" />
+          <Skeleton className="h-96 rounded-[22px]" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="animate-fade-up">
+        <h2
+          className="mb-1.5 text-[28px] font-bold tracking-[-0.6px]"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Inventory{" "}
+          <span
+            className="italic"
+            style={{ color: "var(--color-cloud-deep)" }}
+          >
+            overview
+          </span>
+        </h2>
+        <p
+          className="max-w-2xl text-[13px] leading-relaxed"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          Raw materials and finished products at a glance. Click any row to edit
+          stock levels. Items at or below their minimum appear in the restock
+          panel below.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
+        <div className="animate-fade-up-d1">
+          <SummaryCard
+            Icon={Check}
+            label="Available"
+            value={kpis.totalAvailable}
+            sublabel="ready to fulfill"
+            colorKey="green"
+          />
+        </div>
+        <div className="animate-fade-up-d1">
+          <SummaryCard
+            Icon={Clock}
+            label="Reserved"
+            value={kpis.totalReserved}
+            sublabel="allocated to orders"
+            colorKey="blue"
+          />
+        </div>
+        <div className="animate-fade-up-d2">
+          <SummaryCard
+            Icon={Warehouse}
+            label="Warehouse utilization"
+            value={kpis.utilizationPct ?? "—"}
+            suffix={kpis.utilizationPct !== null ? "%" : undefined}
+            sublabel={utilizationSublabel}
+            colorKey="purple"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+        <div className="animate-fade-up-d2">
+          <CategoryTile
+            title="Raw materials"
+            Icon={Layers}
+            accentKey="purple"
+            items={rawMaterials}
+            onItemClick={(item) => openEdit(item.entry)}
+          />
+        </div>
+        <div className="animate-fade-up-d3">
+          <CategoryTile
+            title="Finished products"
+            Icon={Box}
+            accentKey="blue"
+            items={finishedProducts}
+            onItemClick={(item) => openEdit(item.entry)}
+          />
+        </div>
+      </div>
+
+      <RestockPanel items={lowStockItems} />
+
+      <InventoryLegend />
 
       <ResourceFormDialog
         open={dialogOpen}

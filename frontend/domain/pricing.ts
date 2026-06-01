@@ -41,8 +41,10 @@ export function computeOrderTotalCost(
 }
 
 export function formatPrice(value: number): string {
-  return value.toLocaleString(undefined, {
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })
+  }).format(value)
 }
